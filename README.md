@@ -30,6 +30,7 @@ Een eenvoudig PHP CMS met login, registratie en een admin paneel voor pagina's, 
 - `database/migration_grid_and_contact.sql` — grid tabellen + contactformulier preset
 - `database/migration_builder_and_settings.sql` — layout editor, kleuren per kolom, cookie popup
 - `database/migration_page_theme.sql` — per-pagina kleuren
+- `database/migration_layout_options.sql` — uitlijning, breedte, randen, flush kolommen
 
 ## Layout editor & instellingen
 

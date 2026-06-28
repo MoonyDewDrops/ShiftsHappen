@@ -2,6 +2,8 @@
 require_once __DIR__ . '/../core/db_connect.php';
 require_once __DIR__ . '/../core/contact_form.php';
 require_once __DIR__ . '/../core/page_theme.php';
+require_once __DIR__ . '/../core/page_grid.php';
+require_once __DIR__ . '/../core/grid_styles.php';
 
 $page = null;
 $paginaGrid = [];
@@ -41,13 +43,7 @@ if ($page && !empty($page['heeft_contactformulier']) && $_SERVER['REQUEST_METHOD
 }
 
 if ($page) {
-    $currentPage = (int) $page['id'];
-    $gridStmt = $con->prepare('SELECT id, columnType FROM paginagrid WHERE pageValue = ? ORDER BY rowPosition ASC');
-    $gridStmt->bind_param('i', $currentPage);
-    $gridStmt->execute();
-    $gridResult = $gridStmt->get_result();
-    $paginaGrid = $gridResult->fetch_all(MYSQLI_ASSOC) ?: [];
-    $gridStmt->close();
+    $paginaGrid = getPageGridRows($con, (int) $page['id']);
 }
 
 $pageTitle = $page['titel'] ?? 'Pagina niet gevonden';
@@ -66,85 +62,64 @@ include __DIR__ . '/../core/header.php';
         <h1 class="page-title" style="color: var(--page-text-color);"><?= testInput($page['titel']) ?></h1>
 
         <?php if (!empty($paginaGrid)): ?>
-            <?php
-            $infoStmt = $con->prepare(
-                'SELECT informatie, foto, backgroundColor, backgroundKleur, bold, italic, opacity, kleur
-                 FROM paginainfo WHERE whichRow = ? AND colum = ?'
-            );
-            ?>
-
-            <?php foreach ($paginaGrid as $row): ?>
+            <?php foreach ($paginaGrid as $gridRow): ?>
                 <?php
-                $rowId = (int) $row['id'];
-                $columnType = (int) $row['columnType'];
-
-                switch ($columnType) {
-                    case 2:
-                    case 3:
-                        $columnAmount = 2;
-                        break;
-                    case 4:
-                        $columnAmount = 3;
-                        break;
-                    default:
-                        $columnAmount = 1;
-                        break;
-                }
-
-                if ($columnType === 1) {
-                    $rowClass = 'top-content';
-                } elseif ($columnType === 2 || $columnType === 3) {
-                    $rowClass = 'middle-content';
-                } else {
-                    $rowClass = 'row' . $columnType;
-                }
+                $columnType = (int) $gridRow['columnType'];
+                $columnAmount = gridColumnCount($columnType);
+                $rowLayout = normalizeRowLayout($gridRow);
+                $flushRow = !empty($rowLayout['flush_columns']) || (int) $rowLayout['column_gap'] === 0;
+                $gridClass = rowGridClass($columnType, $gridRow);
+                $wrapperStyle = buildRowWrapperStyle($gridRow);
+                $gridStyle = buildRowGridStyle($gridRow, $gridRow['columns'], $columnAmount);
                 ?>
-
                 <div class="rowContainer">
-                    <div class="<?= $rowClass ?>">
-                        <?php for ($columnID = 1; $columnID <= $columnAmount; $columnID++): ?>
-                            <?php
-                            $infoStmt->bind_param('ii', $rowId, $columnID);
-                            $infoStmt->execute();
-                            $infoStmt->bind_result($informatie, $foto, $backgroundColor, $backgroundKleur, $bolded, $italic, $opacity, $kleur);
+                    <div class="row-wrapper" style="<?= $wrapperStyle ?>">
+                        <div class="<?= $gridClass ?>" style="<?= $gridStyle ?>">
+                            <?php for ($columnID = 1; $columnID <= $columnAmount; $columnID++): ?>
+                                <?php
+                                $column = $gridRow['columns'][$columnID] ?? null;
+                                if (!$column) {
+                                    continue;
+                                }
 
-                            if (!$infoStmt->fetch()) {
-                                continue;
-                            }
+                                $newOpacity = max(0, min(1, ((int) ($column['opacity'] ?? 10)) / 10));
+                                $isImage = (int) ($column['foto'] ?? 0) === 1;
+                                $textClasses = 'home-text';
+                                if ((int) ($column['italic'] ?? 0) === 1) {
+                                    $textClasses .= ' italic';
+                                }
+                                if ((int) ($column['bold'] ?? 0) === 1) {
+                                    $textClasses .= ' bold';
+                                }
+                                $bgColor = validateHexColor($column['backgroundKleur'] ?? '#f9fafb', '#f9fafb');
+                                $columnStyle = buildColumnStyle($column, $isImage, $flushRow);
+                                $imageClass = $flushRow ? 'grid-image grid-image--flush' : 'grid-image';
+                                ?>
 
-                            $newOpacity = max(0, min(1, ((int) $opacity) / 10));
-                            $isImage = (int) $foto === 1;
-                            $textClasses = 'home-text';
-                            if ((int) $italic === 1) {
-                                $textClasses .= ' italic';
-                            }
-                            if ((int) $bolded === 1) {
-                                $textClasses .= ' bold';
-                            }
-                            $bgColor = validateHexColor($backgroundKleur ?? '#f9fafb', '#f9fafb');
-                            ?>
-
-                            <?php if ($isImage): ?>
-                                <div class="<?= $columnType === 1 ? 'top-image' : 'page-image' ?>">
-                                    <img class="team-image"
-                                        src="<?= asset('img/fotos/' . rawurlencode($informatie)) ?>"
-                                        style="opacity: <?= $newOpacity ?>;"
-                                        alt="Afbeelding">
+                                <div class="grid-cell" style="<?= $columnStyle ?>">
+                                    <?php if ($isImage): ?>
+                                        <?php if (!empty($column['informatie'])): ?>
+                                            <div class="<?= $imageClass ?>">
+                                                <img class="team-image"
+                                                    src="<?= asset('img/fotos/' . rawurlencode($column['informatie'])) ?>"
+                                                    style="opacity: <?= $newOpacity ?>;"
+                                                    alt="Afbeelding">
+                                            </div>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <div class="content-column" style="background-color: <?= testInput($bgColor) ?>; width: 100%;">
+                                            <p class="<?= $textClasses ?>"
+                                                style="opacity: <?= $newOpacity ?>; color: <?= testInput($column['kleur'] ?? '#111827') ?>;">
+                                                <?= nl2br(testInput($column['informatie'] ?? '')) ?>
+                                            </p>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
-                            <?php else: ?>
-                                <div class="content-column" style="background-color: <?= testInput($bgColor) ?>;">
-                                    <p class="<?= $textClasses ?>"
-                                        style="opacity: <?= $newOpacity ?>; color: <?= testInput($kleur) ?>;">
-                                        <?= nl2br(testInput($informatie)) ?>
-                                    </p>
-                                </div>
-                            <?php endif; ?>
-                        <?php endfor; ?>
+                            <?php endfor; ?>
+                        </div>
                     </div>
                 </div>
             <?php endforeach; ?>
-
-            <?php $infoStmt->close(); ?>
         <?php else: ?>
             <div class="page-content">
                 <?= nl2br(testInput($page['inhoud'])) ?>

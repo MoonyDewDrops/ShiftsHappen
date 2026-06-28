@@ -116,17 +116,55 @@
 
 .top-content,
 .middle-content,
-.row4 {
+.row4,
+.grid-row {
     display: grid;
     gap: 1rem;
 }
 
-.middle-content {
+.grid-row--1 {
+    grid-template-columns: 1fr;
+}
+
+.grid-row--2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.row4 {
+.grid-row--3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-row--flush {
+    gap: 0 !important;
+}
+
+.grid-row--flush .grid-image--flush,
+.grid-row--flush .grid-image--flush img,
+.grid-row--flush .team-image {
+    border-radius: 0;
+}
+
+.row-wrapper {
+    box-sizing: border-box;
+}
+
+.grid-cell {
+    min-width: 0;
+}
+
+.grid-image,
+.top-image,
+.page-image {
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.grid-row--flush .grid-image,
+.grid-row--flush .grid-image img {
+    border-radius: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .normalColumn,
@@ -234,7 +272,9 @@
 
 @media (max-width: 768px) {
     .middle-content,
-    .row4 {
+    .row4,
+    .grid-row--2,
+    .grid-row--3 {
         grid-template-columns: 1fr;
     }
 

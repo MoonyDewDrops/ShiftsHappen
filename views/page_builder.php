@@ -3,6 +3,7 @@ require_once __DIR__ . '/../core/admin_header.php';
 require_once __DIR__ . '/../core/page_grid.php';
 require_once __DIR__ . '/../core/page_theme.php';
 require_once __DIR__ . '/../core/site_settings.php';
+require_once __DIR__ . '/../core/builder_ui.php';
 
 $pageId = (int) ($_GET['page_id'] ?? 0);
 $page = getPageForBuilder($con, $pageId);
@@ -14,14 +15,16 @@ if (!$page) {
     exit();
 }
 
-$gridRows = getPageGridRows($con, $pageId);
+$gridRows = normalizeGridRowsForBuilder(getPageGridRows($con, $pageId));
 $pageTheme = getPageTheme($page, $con);
-$siteSettings = getSiteSettings($con);
+$assetBase = url('assets/');
+$migrationCheck = $con->query("SHOW COLUMNS FROM paginagrid LIKE 'row_width_pct'");
+$layoutMigrationOk = $migrationCheck && $migrationCheck->num_rows > 0;
 
 $builderConfig = [
     'pageId' => $pageId,
     'apiUrl' => view('page_builder_api.php'),
-    'assetBase' => url('assets/'),
+    'assetBase' => $assetBase,
     'pageTitle' => $page['titel'],
     'pageSlug' => $page['slug'],
     'theme' => $pageTheme,
@@ -33,7 +36,7 @@ $builderConfig = [
     <div class="builder-header">
         <div>
             <h1>Layout bewerken: <?= testInput($page['titel']) ?></h1>
-            <p class="admin-meta">Sleep rijen om te ordenen. Wijzigingen worden live getoond. Sla alles in één keer op.</p>
+            <p class="admin-meta">Sleep kolomsecties om te ordenen. Wijzigingen worden live getoond. Sla alles in één keer op.</p>
         </div>
         <div class="builder-header__actions">
             <a class="admin-view-link" href="<?= view('pages.php') ?>?slug=<?= urlencode($page['slug']) ?>" target="_blank">Bekijk pagina</a>
@@ -42,6 +45,12 @@ $builderConfig = [
     </div>
 
     <div id="builder-toast" class="builder-toast" hidden></div>
+
+    <?php if (!$layoutMigrationOk): ?>
+        <div class="pop-up pop-up--error">
+            <p>Layout-opties ontbreken in de database. Importeer <code>database/migration_layout_options.sql</code> in phpMyAdmin en herlaad deze pagina.</p>
+        </div>
+    <?php endif; ?>
 
     <div class="builder-layout">
         <div class="builder-editor">
@@ -73,20 +82,22 @@ $builderConfig = [
             </section>
 
             <section class="builder-rows-section">
-                <h2>Rijen</h2>
-                <div id="builder-rows" class="builder-rows-list"></div>
+                <h2>Kolommen</h2>
+                <div id="builder-rows" class="builder-rows-list">
+                    <?= renderBuilderRows($gridRows, $assetBase) ?>
+                </div>
 
                 <div class="admin-form admin-form--inline builder-add-row">
                     <div class="inputField">
-                        <label for="new-column-type">Nieuwe rij layout</label>
+                        <label for="new-column-type">Layout (kolommen naast elkaar)</label>
                         <select id="new-column-type">
-                            <option value="1">Enkele kolom (hero)</option>
-                            <option value="2">Twee kolommen</option>
-                            <option value="3">Twee kolommen (variant)</option>
-                            <option value="4">Drie kolommen</option>
+                            <option value="1">1 kolom</option>
+                            <option value="2">2 kolommen</option>
+                            <option value="3">2 kolommen (variant)</option>
+                            <option value="4">3 kolommen</option>
                         </select>
                     </div>
-                    <button type="button" id="add-row-btn">Rij toevoegen</button>
+                    <button type="button" id="add-row-btn">Kolomsectie toevoegen</button>
                 </div>
             </section>
         </div>
@@ -114,6 +125,7 @@ $builderConfig = [
 <script>
     window.BUILDER_CONFIG = <?= json_encode($builderConfig, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 </script>
-<script src="<?= asset('js/admin-builder.js') ?>"></script>
+<script src="<?= asset('js/grid-styles.js') ?>?v=3"></script>
+<script src="<?= asset('js/admin-builder.js') ?>?v=3"></script>
 
 <?php require_once __DIR__ . '/../core/admin_footer.php'; ?>

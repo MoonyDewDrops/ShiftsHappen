@@ -208,6 +208,22 @@ textarea {
     margin-bottom: 0.75rem;
 }
 
+.preview-row.grid-row--1 {
+    grid-template-columns: 1fr;
+}
+
+.preview-row.grid-row--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.preview-row.grid-row--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.preview-row.grid-row--flush {
+    gap: 0;
+}
+
 .preview-row.top-content,
 .preview-row.middle-content,
 .preview-row.row4 {
@@ -301,6 +317,60 @@ textarea {
     border-radius: 8px;
     margin-bottom: 0.5rem;
     object-fit: cover;
+}
+
+.layout-block {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed #e5e7eb;
+}
+
+.layout-block__label {
+    margin: 0 0 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.border-sides {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+}
+
+.builder-row-settings {
+    margin-bottom: 1rem;
+    background: #f9fafb;
+}
+
+.layout-section {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed #e5e7eb;
+}
+
+.layout-section h5 {
+    margin: 0 0 0.75rem;
+    font-size: 0.95rem;
+}
+
+.preview-row-wrap {
+    margin-bottom: 0.75rem;
+}
+
+.preview-cell {
+    min-width: 0;
+}
+
+.preview-image--flush img {
+    border-radius: 0;
+    width: 100%;
+    display: block;
+}
+
+.grid-row--flush .preview-row,
+.preview-row.grid-row--flush {
+    gap: 0 !important;
 }
 
 .builder-theme-panel {
@@ -489,7 +559,7 @@ textarea {
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 480px) {
     .builder-columns--2,
     .builder-columns--3,
     .builder-columns--4 {
