@@ -25,7 +25,11 @@ $socialLinks = $con->query('SELECT platform, url FROM socials ORDER BY volgorde 
             --accent-color: <?= testInput($siteSettings['accent_color']) ?>;
             --footer-bg: <?= testInput($pageTheme['footer_bg'] ?? $siteSettings['footer_bg']) ?>;
             --footer-text: <?= testInput($pageTheme['footer_text'] ?? $siteSettings['footer_text']) ?>;
-            --page-text-color: <?= testInput($pageTheme['page_text_color'] ?? '#111827') ?>;
+            --page-text-color: <?= testInput($pageTheme['page_text_color'] ?? $siteSettings['font_color']) ?>;
+            --font-family: <?= sanitizeFontFamily($siteSettings['font_family'] ?? '') ?>;
+            --font-size: <?= sanitizeFontSize((int) ($siteSettings['font_size'] ?? 16)) ?>px;
+            --font-color: <?= testInput($siteSettings['font_color']) ?>;
+            --cookie-enabled: <?= intval($siteSettings['cookie_enabled']) ?>;
         }
     </style>
     <title><?= isset($pageTitle) ? testInput($pageTitle) . ' - ' : '' ?>ShiftsHappen</title>

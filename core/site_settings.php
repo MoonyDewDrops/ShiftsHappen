@@ -12,6 +12,9 @@ function defaultSiteSettings(): array
         'accent_color' => '#2563eb',
         'footer_bg' => '#111827',
         'footer_text' => '#9ca3af',
+        'font_family' => allowedFontFamilies()[0],
+        'font_size' => 16,
+        'font_color' => '#000000',
         'cookie_enabled' => 1,
         'cookie_tekst' => 'We gebruiken cookies om je ervaring op onze website te verbeteren. Door op Accepteren te klikken ga je akkoord met ons cookiebeleid.',
         'cookie_button_text' => 'Accepteren',
@@ -22,12 +25,64 @@ function defaultSiteSettings(): array
     ];
 }
 
+function allowedFontFamilies(): array
+{
+    return [
+        'Arial, sans-serif',
+        "'Helvetica Neue', Helvetica, sans-serif",
+        "'Times New Roman', Times, serif",
+        "'Courier New', Courier, monospace",
+        'Verdana, Geneva, sans-serif',
+    ];
+}
+
+function sanitizeFontFamily(string $font): string
+{
+    $allowed = allowedFontFamilies();
+
+    return in_array($font, $allowed, true) ? $font : $allowed[0];
+}
+
+function sanitizeFontSize(int $size): int
+{
+    return max(8, min(72, $size));
+}
+
+function ensureSiteSettingsColumns(mysqli $con): void
+{
+    static $ensured = false;
+
+    if ($ensured) {
+        return;
+    }
+
+    $columns = [
+        'font_family' => "VARCHAR(100) NOT NULL DEFAULT 'Arial, sans-serif'",
+        'font_size' => 'TINYINT UNSIGNED NOT NULL DEFAULT 16',
+        'font_color' => "VARCHAR(20) NOT NULL DEFAULT '#000000'",
+    ];
+
+    foreach ($columns as $name => $definition) {
+        $exists = $con->query("SHOW COLUMNS FROM site_settings LIKE '{$name}'");
+        if ($exists && $exists->num_rows === 0) {
+            $con->query("ALTER TABLE site_settings ADD COLUMN {$name} {$definition}");
+        }
+    }
+
+    $ensured = true;
+}
+
 function getSiteSettings(mysqli $con): array
 {
+    ensureSiteSettingsColumns($con);
     $result = $con->query('SELECT * FROM site_settings WHERE id = 1');
 
     if ($result && $row = $result->fetch_assoc()) {
-        return array_merge(defaultSiteSettings(), $row);
+        $settings = array_merge(defaultSiteSettings(), $row);
+        $settings['font_family'] = sanitizeFontFamily((string) ($settings['font_family'] ?? ''));
+        $settings['font_size'] = sanitizeFontSize((int) ($settings['font_size'] ?? 16));
+
+        return $settings;
     }
 
     return defaultSiteSettings();
@@ -35,15 +90,21 @@ function getSiteSettings(mysqli $con): array
 
 function saveSiteSettings(mysqli $con, array $data): bool
 {
+    ensureSiteSettingsColumns($con);
+
     $defaults = defaultSiteSettings();
     $settings = array_merge($defaults, $data);
+    $settings['font_family'] = sanitizeFontFamily((string) $settings['font_family']);
+    $settings['font_size'] = sanitizeFontSize((int) $settings['font_size']);
+    $fontSize = $settings['font_size'];
 
     $stmt = $con->prepare(
         'INSERT INTO site_settings (
             id, header_bg, header_text, header_link, body_bg, page_bg, accent_color,
-            footer_bg, footer_text, cookie_enabled, cookie_tekst, cookie_button_text,
+            footer_bg, footer_text, font_family, font_size, font_color,
+            cookie_enabled, cookie_tekst, cookie_button_text,
             cookie_bg, cookie_text_color, cookie_button_bg, cookie_button_text_color
-        ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
             header_bg = VALUES(header_bg),
             header_text = VALUES(header_text),
@@ -53,6 +114,9 @@ function saveSiteSettings(mysqli $con, array $data): bool
             accent_color = VALUES(accent_color),
             footer_bg = VALUES(footer_bg),
             footer_text = VALUES(footer_text),
+            font_family = VALUES(font_family),
+            font_size = VALUES(font_size),
+            font_color = VALUES(font_color),
             cookie_enabled = VALUES(cookie_enabled),
             cookie_tekst = VALUES(cookie_tekst),
             cookie_button_text = VALUES(cookie_button_text),
@@ -64,8 +128,12 @@ function saveSiteSettings(mysqli $con, array $data): bool
 
     $cookieEnabled = !empty($settings['cookie_enabled']) ? 1 : 0;
 
+    if (!$stmt) {
+        return false;
+    }
+
     $stmt->bind_param(
-        'ssssssssissssss',
+        'sssssssssisissssss',
         $settings['header_bg'],
         $settings['header_text'],
         $settings['header_link'],
@@ -74,6 +142,9 @@ function saveSiteSettings(mysqli $con, array $data): bool
         $settings['accent_color'],
         $settings['footer_bg'],
         $settings['footer_text'],
+        $settings['font_family'],
+        $fontSize,
+        $settings['font_color'],
         $cookieEnabled,
         $settings['cookie_tekst'],
         $settings['cookie_button_text'],

@@ -9,7 +9,7 @@ function getPageTheme(array $page, mysqli $con): array
     return [
         'body_bg' => validateHexColor($page['body_bg'] ?? '', $site['body_bg']),
         'page_bg' => validateHexColor($page['page_bg'] ?? '', $site['page_bg']),
-        'page_text_color' => validateHexColor($page['page_text_color'] ?? '', '#111827'),
+        'page_text_color' => validateHexColor($page['page_text_color'] ?? '', $site['font_color']),
         'footer_bg' => validateHexColor($page['footer_bg'] ?? '', $site['footer_bg']),
         'footer_text' => validateHexColor($page['footer_text'] ?? '', $site['footer_text']),
     ];

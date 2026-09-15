@@ -1,6 +1,12 @@
+html {
+    font-family: var(--font-family, Arial, sans-serif);
+    font-size: var(--font-size, 16px);
+}
+
 .public-body {
     background: var(--body-bg, #f3f4f6);
-    color: #111827;
+    font-family: var(--font-family, Arial, sans-serif);
+    color: var(--page-text-color, var(--font-color, #111827));
     min-height: 100vh;
 }
 

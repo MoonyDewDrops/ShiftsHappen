@@ -23,6 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'cookie_text_color' => validateHexColor($_POST['cookie_text_color'] ?? '#f9fafb'),
         'cookie_button_bg' => validateHexColor($_POST['cookie_button_bg'] ?? '#2563eb'),
         'cookie_button_text_color' => validateHexColor($_POST['cookie_button_text_color'] ?? '#ffffff'),
+        'font_family' => sanitizeFontFamily($_POST['font_family'] ?? 'Arial, sans-serif'),
+        'font_size' => sanitizeFontSize((int) ($_POST['font_size'] ?? 16)),
+        'font_color' => validateHexColor($_POST['font_color'] ?? '#000000'),
     ];
 
     if ($data['cookie_tekst'] === '') {
@@ -40,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="admin-panel">
     <h1>Website instellingen</h1>
-    <p>Pas de globale header, accentkleur en cookie-popup aan. Pagina-kleuren stel je per pagina in via <strong>Layout bewerken</strong>.</p>
+    <p>Pas de globale header, accentkleur, font, font grootte, en font kleur samen met de cookie-popup aan. Pagina-kleuren stel je per pagina in via <strong>Layout bewerken</strong>.</p>
 
     <?php if ($notice !== ''): ?>
         <div class="pop-up <?= $noticeError ? 'pop-up--error' : 'pop-up--success' ?>">
@@ -104,6 +107,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label>Knop tekst</label>
                     <input type="color" name="cookie_button_text_color" value="<?= testInput($settings['cookie_button_text_color']) ?>">
                 </div>
+            </div>
+        </section>
+
+        <section class="settings-block">
+            <h2>Font, grootte & kleur (globaal)</h2>
+            <div class="inputField">
+                <label for="font_family">Font familie</label>
+                <select name="font_family" id="font_family">
+                    <?php foreach (allowedFontFamilies() as $fontFamily): ?>
+                        <?php
+                        $fontLabel = explode(',', $fontFamily)[0];
+                        $fontLabel = trim($fontLabel, " '\"");
+                        ?>
+                        <option value="<?= testInput($fontFamily) ?>" <?= $settings['font_family'] === $fontFamily ? 'selected' : '' ?>>
+                            <?= testInput($fontLabel) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="inputField">
+                <label for="font_size">Font grootte (px)</label>
+                <input type="number" name="font_size" id="font_size" value="<?= testInput($settings['font_size']) ?>" min="8" max="72">
+            </div>
+            <div class="inputField">
+                <label for="font_color">Font kleur</label>
+                <input type="color" name="font_color" id="font_color" value="<?= testInput($settings['font_color']) ?>">
             </div>
         </section>
 

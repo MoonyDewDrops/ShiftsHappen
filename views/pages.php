@@ -59,7 +59,7 @@ include __DIR__ . '/../core/header.php';
     </div>
 <?php else: ?>
     <div class="page-container">
-        <h1 class="page-title" style="color: var(--page-text-color);"><?= testInput($page['titel']) ?></h1>
+        <h1 class="page-title" style="color: var(--page-text-color);"></h1>
 
         <?php if (!empty($paginaGrid)): ?>
             <?php foreach ($paginaGrid as $gridRow): ?>
