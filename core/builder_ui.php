@@ -72,11 +72,11 @@ function builderRowSettingsHtml(array $row): string
         </div>';
 }
 
-function builderColumnLayoutHtml(array $row, int $colNum, array $col, bool $isImage): string
+function builderColumnLayoutHtml(array $row, int $colNum, array $col, bool $isImageOnly): string
 {
     $rowId = (int) $row['id'];
     $layout = normalizeColumnLayout($col);
-    $textOnlyHidden = $isImage ? ' hidden' : '';
+    $textOnlyHidden = $isImageOnly ? ' hidden' : '';
 
     $widthOptions = '';
     foreach ([0 => 'Automatisch (gelijk)', 25 => '25%', 33 => '33%', 50 => '50%', 66 => '66%', 75 => '75%', 100 => '100%'] as $value => $label) {
@@ -124,11 +124,23 @@ function builderColumnLayoutHtml(array $row, int $colNum, array $col, bool $isIm
 function builderColumnHtml(array $row, int $colNum, array $col, string $assetBase): string
 {
     $rowId = (int) $row['id'];
-    $isImage = (int) ($col['foto'] ?? 0) === 1;
+    $col = normalizeColumnContentMode($col);
+    $contentMode = (int) $col['content_mode'];
     $infoId = (int) ($col['info_id'] ?? 0);
-    $imageUrl = $isImage && !empty($col['informatie'])
-        ? $assetBase . 'img/fotos/' . rawurlencode($col['informatie'])
+
+    $hideText = $contentMode === 1 ? ' hidden' : '';
+    $hideImage = $contentMode === 0 ? ' hidden' : '';
+    $hideImagePosition = $contentMode === 2 ? '' : ' hidden';
+
+    $imageUrl = ($contentMode !== 0 && !empty($col['image_filename']))
+        ? $assetBase . 'img/fotos/' . rawurlencode($col['image_filename'])
         : '';
+
+    $positionOptions = '';
+    foreach (['top' => 'Boven', 'left' => 'Links', 'right' => 'Rechts', 'bottom' => 'Onder'] as $value => $label) {
+        $selected = $col['image_position'] === $value ? ' selected' : '';
+        $positionOptions .= '<option value="' . $value . '"' . $selected . '>' . $label . '</option>';
+    }
 
     ob_start();
     ?>
@@ -136,41 +148,58 @@ function builderColumnHtml(array $row, int $colNum, array $col, string $assetBas
         <h4>Kolom <?= $colNum ?></h4>
         <div class="inputField">
             <label>Type inhoud</label>
-            <select data-scope="column" data-field="foto" data-row-id="<?= $rowId ?>" data-col="<?= $colNum ?>">
-                <option value="0" <?= !$isImage ? 'selected' : '' ?>>Tekst</option>
-                <option value="1" <?= $isImage ? 'selected' : '' ?>>Afbeelding</option>
+            <select data-scope="column" data-field="content_mode" data-row-id="<?= $rowId ?>" data-col="<?= $colNum ?>">
+                <option value="0" <?= $contentMode === 0 ? 'selected' : '' ?>>Tekst</option>
+                <option value="1" <?= $contentMode === 1 ? 'selected' : '' ?>>Afbeelding</option>
+                <option value="2" <?= $contentMode === 2 ? 'selected' : '' ?>>Afbeelding + tekst</option>
             </select>
         </div>
-        <div class="inputField content-text" <?= $isImage ? 'hidden' : '' ?>>
+
+        <div class="inputField content-text rich-text-field"<?= $hideText ?>>
             <label>Tekst</label>
-            <textarea data-scope="column" data-field="informatie" data-row-id="<?= $rowId ?>" data-col="<?= $colNum ?>" rows="4"><?= $isImage ? '' : testInput($col['informatie'] ?? '') ?></textarea>
+            <p class="admin-meta">Selecteer een stukje tekst en klik op <strong>Titel</strong> om er een kop van te maken, of op <strong>Vet</strong> om te benadrukken.</p>
+            <div class="rich-toolbar">
+                <button type="button" class="rt-btn" data-rt-cmd="bold" title="Vet">Vet</button>
+                <button type="button" class="rt-btn rt-btn--title" data-rt-cmd="title" title="Maak van de selectie een titel">Titel</button>
+                <button type="button" class="rt-btn" data-rt-cmd="clear" title="Opmaak wissen">Wis opmaak</button>
+            </div>
+            <div class="rich-text-editor" contenteditable="true"
+                data-scope="column" data-field="informatie" data-row-id="<?= $rowId ?>" data-col="<?= $colNum ?>"
+            ><?= $col['informatie'] ?? '' ?></div>
         </div>
-        <div class="inputField content-image" <?= !$isImage ? 'hidden' : '' ?>>
+
+        <div class="inputField content-image"<?= $hideImage ?>>
             <?php if ($imageUrl !== ''): ?>
                 <img class="builder-thumb" src="<?= testInput($imageUrl) ?>" alt="Preview">
             <?php endif; ?>
             <label>Upload afbeelding</label>
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" data-info-id="<?= $infoId ?>" data-row-id="<?= $rowId ?>" data-col="<?= $colNum ?>">
         </div>
+
+        <div class="inputField content-image-position"<?= $hideImagePosition ?>>
+            <label>Positie afbeelding t.o.v. tekst</label>
+            <select data-scope="column" data-field="image_position" data-row-id="<?= $rowId ?>" data-col="<?= $colNum ?>"><?= $positionOptions ?></select>
+        </div>
+
         <div class="color-grid">
             <div class="inputField">
                 <label>Tekstkleur</label>
                 <input type="color" data-scope="column" data-field="kleur" data-row-id="<?= $rowId ?>" data-col="<?= $colNum ?>" value="<?= testInput($col['kleur'] ?? '#111827') ?>">
             </div>
-            <div class="inputField content-text-only" <?= $isImage ? 'hidden' : '' ?>>
+            <div class="inputField content-text-only"<?= $hideText ?>>
                 <label>Achtergrondkleur</label>
                 <input type="color" data-scope="column" data-field="backgroundKleur" data-row-id="<?= $rowId ?>" data-col="<?= $colNum ?>" value="<?= testInput($col['backgroundKleur'] ?? '#f9fafb') ?>">
             </div>
         </div>
-        <div class="inputField content-text-only" <?= $isImage ? 'hidden' : '' ?>>
+        <div class="inputField content-text-only"<?= $hideText ?>>
             <label>Opacity (0–10)</label>
             <input type="range" min="0" max="10" data-scope="column" data-field="opacity" data-row-id="<?= $rowId ?>" data-col="<?= $colNum ?>" value="<?= (int) ($col['opacity'] ?? 10) ?>">
         </div>
-        <div class="inputField inputField--checkbox content-text-only" <?= $isImage ? 'hidden' : '' ?>>
-            <label><input type="checkbox" data-scope="column" data-field="bold" data-row-id="<?= $rowId ?>" data-col="<?= $colNum ?>" value="1" <?= !empty($col['bold']) ? 'checked' : '' ?>> Vet</label>
+        <div class="inputField inputField--checkbox content-text-only"<?= $hideText ?>>
+            <label><input type="checkbox" data-scope="column" data-field="bold" data-row-id="<?= $rowId ?>" data-col="<?= $colNum ?>" value="1" <?= !empty($col['bold']) ? 'checked' : '' ?>> Vet (hele blok)</label>
             <label><input type="checkbox" data-scope="column" data-field="italic" data-row-id="<?= $rowId ?>" data-col="<?= $colNum ?>" value="1" <?= !empty($col['italic']) ? 'checked' : '' ?>> Cursief</label>
         </div>
-        <?= builderColumnLayoutHtml($row, $colNum, $col, $isImage) ?>
+        <?= builderColumnLayoutHtml($row, $colNum, $col, $contentMode === 1) ?>
     </div>
     <?php
     return ob_get_clean();
@@ -216,6 +245,7 @@ function normalizeGridRowsForBuilder(array $gridRows): array
         $row = array_merge($row, normalizeRowLayout($row));
         foreach ($row['columns'] as &$column) {
             $column = array_merge($column, normalizeColumnLayout($column));
+            $column = normalizeColumnContentMode($column);
         }
     }
     unset($row, $column);

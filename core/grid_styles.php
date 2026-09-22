@@ -69,6 +69,37 @@ function normalizeColumnLayout(array $column): array
     ]);
 }
 
+/**
+ * Normalizes the "what kind of content is this block" fields.
+ * content_mode: 0 = tekst, 1 = afbeelding, 2 = afbeelding + tekst.
+ *
+ * Falls back gracefully to the old `foto` flag when the
+ * migration_content_blocks.sql migration hasn't been run yet, so the
+ * builder doesn't hard-crash on an un-migrated database.
+ */
+function normalizeColumnContentMode(array $column): array
+{
+    if (array_key_exists('content_mode', $column) && $column['content_mode'] !== null) {
+        $contentMode = (int) $column['content_mode'];
+    } else {
+        $contentMode = !empty($column['foto']) ? 1 : 0;
+    }
+    if ($contentMode < 0 || $contentMode > 2) {
+        $contentMode = 0;
+    }
+    $column['content_mode'] = $contentMode;
+    $column['image_position'] = sanitizeAlign($column['image_position'] ?? 'top', ['top', 'right', 'bottom', 'left'], 'top');
+
+    $imageFilename = $column['image_filename'] ?? '';
+    if ($imageFilename === '' && $contentMode !== 0 && !array_key_exists('image_filename', $column) && !empty($column['informatie'])) {
+        // Pre-migration rows stored the image filename in `informatie` itself.
+        $imageFilename = $column['informatie'];
+    }
+    $column['image_filename'] = $imageFilename;
+
+    return $column;
+}
+
 function buildBorderCss(array $item): string
 {
     $width = max(1, min(8, (int) ($item['border_width'] ?? 1)));

@@ -3,6 +3,7 @@
 require_once __DIR__ . '/uploads.php';
 require_once __DIR__ . '/page_theme.php';
 require_once __DIR__ . '/grid_styles.php';
+require_once __DIR__ . '/content_sanitizer.php';
 
 function gridColumnCount(int $columnType): int
 {
@@ -41,8 +42,9 @@ function gridLayoutLabel(int $columnType): string
                     g.border_top AS row_border_top, g.border_right AS row_border_right,
                     g.border_bottom AS row_border_bottom, g.border_left AS row_border_left,
                     g.border_width AS row_border_width, g.border_color AS row_border_color,
-                    i.id AS info_id, i.colum, i.informatie, i.foto, i.backgroundColor,
-                    i.backgroundKleur, i.bold, i.italic, i.opacity, i.kleur,
+                    i.id AS info_id, i.colum, i.informatie, i.foto,
+                    i.content_mode, i.image_position, i.image_filename,
+                    i.backgroundColor, i.backgroundKleur, i.bold, i.italic, i.opacity, i.kleur,
                     i.text_align, i.vertical_align, i.width_pct, i.padding_px,
                     i.border_top, i.border_right, i.border_bottom, i.border_left,
                     i.border_width, i.border_color
@@ -87,7 +89,7 @@ function gridLayoutLabel(int $columnType): string
         }
 
         if ($row['info_id'] !== null) {
-            $rows[$rowId]['columns'][(int) $row['colum']] = $row;
+            $rows[$rowId]['columns'][(int) $row['colum']] = normalizeColumnContentMode($row);
         }
     }
 
@@ -124,7 +126,9 @@ function getPageGridRowsLegacy(mysqli $con, int $pageId): array
         }
 
         if ($row['info_id'] !== null) {
-            $rows[$rowId]['columns'][(int) $row['colum']] = array_merge($row, defaultColumnLayout());
+            $rows[$rowId]['columns'][(int) $row['colum']] = normalizeColumnContentMode(
+                array_merge($row, defaultColumnLayout())
+            );
         }
     }
 
@@ -137,16 +141,29 @@ function createEmptyColumnInfo(mysqli $con, int $rowId, int $columnNumber): void
 {
     $stmt = $con->prepare(
         'INSERT INTO paginainfo (
-            whichRow, colum, informatie, foto, backgroundColor, backgroundKleur,
-            bold, italic, opacity, kleur, text_align, vertical_align, width_pct, padding_px
-        ) VALUES (?, ?, ?, 0, 0, ?, 0, 0, 10, ?, ?, ?, 0, 16)'
+            whichRow, colum, informatie, foto, content_mode, image_position, image_filename,
+            backgroundColor, backgroundKleur, bold, italic, opacity, kleur, text_align, vertical_align, width_pct, padding_px
+        ) VALUES (?, ?, ?, 0, 0, ?, ?, 0, ?, 0, 0, 10, ?, ?, ?, 0, 16)'
     );
     $empty = '';
+    $position = 'top';
+    $imageFilename = '';
     $bg = '#f9fafb';
     $text = '#111827';
     $textAlign = 'left';
     $verticalAlign = 'top';
-    $stmt->bind_param('iisssss', $rowId, $columnNumber, $empty, $bg, $text, $textAlign, $verticalAlign);
+    $stmt->bind_param(
+        'iisssssss',
+        $rowId,
+        $columnNumber,
+        $empty,
+        $position,
+        $imageFilename,
+        $bg,
+        $text,
+        $textAlign,
+        $verticalAlign
+    );
     $stmt->execute();
     $stmt->close();
 }
@@ -230,21 +247,30 @@ function saveGridColumn(mysqli $con, int $infoId, int $pageId, array $data, ?arr
 function saveGridColumnData(mysqli $con, int $infoId, int $pageId, array $data, ?array $file = null, bool $allowEmpty = false): array
 {
     $check = $con->prepare(
-        'SELECT i.id FROM paginainfo i
+        'SELECT i.id, i.image_filename FROM paginainfo i
          INNER JOIN paginagrid g ON g.id = i.whichRow
          WHERE i.id = ? AND g.pageValue = ?'
     );
     $check->bind_param('ii', $infoId, $pageId);
     $check->execute();
-    $exists = $check->get_result()->fetch_assoc();
+    $existing = $check->get_result()->fetch_assoc();
     $check->close();
 
-    if (!$exists) {
+    if (!$existing) {
         return ['success' => false, 'message' => 'Kolom niet gevonden.'];
     }
 
-    $isImage = isset($data['foto']) && (int) $data['foto'] === 1;
-    $informatie = trim($data['informatie'] ?? '');
+    $contentMode = (int) ($data['content_mode'] ?? 0);
+    if ($contentMode < 0 || $contentMode > 2) {
+        $contentMode = 0;
+    }
+
+    $wantsText = in_array($contentMode, [0, 2], true);
+    $wantsImage = in_array($contentMode, [1, 2], true);
+
+    $imagePosition = sanitizeAlign($data['image_position'] ?? 'top', ['top', 'right', 'bottom', 'left'], 'top');
+    $informatie = $wantsText ? sanitizeBlockHtml($data['informatie'] ?? '') : '';
+
     $kleur = validateHexColor($data['kleur'] ?? '#111827', '#111827');
     $backgroundKleur = validateHexColor($data['backgroundKleur'] ?? '#f9fafb', '#f9fafb');
     $bold = !empty($data['bold']) ? 1 : 0;
@@ -252,23 +278,29 @@ function saveGridColumnData(mysqli $con, int $infoId, int $pageId, array $data, 
     $opacity = max(0, min(10, (int) ($data['opacity'] ?? 10)));
     $backgroundColor = $backgroundKleur !== '#f9fafb' ? 1 : 0;
 
-    if ($isImage && $file && $file['error'] !== UPLOAD_ERR_NO_FILE) {
+    $imageFilename = (string) ($existing['image_filename'] ?? '');
+
+    if ($wantsImage && $file && $file['error'] !== UPLOAD_ERR_NO_FILE) {
         $upload = uploadPageImage($file);
         if (!$upload['success']) {
             return $upload;
         }
-        $informatie = $upload['filename'];
+        $imageFilename = $upload['filename'];
     }
 
-    if ($isImage && $informatie === '' && !$allowEmpty) {
+    if (!$wantsImage) {
+        $imageFilename = '';
+    }
+
+    if ($wantsImage && $imageFilename === '' && !$allowEmpty) {
         return ['success' => false, 'message' => 'Upload een afbeelding of schakel terug naar tekst.'];
     }
 
-    if (!$isImage && $informatie === '' && !$allowEmpty) {
+    if ($wantsText && blockTextIsEmpty($informatie) && !$allowEmpty) {
         return ['success' => false, 'message' => 'Vul tekst in voor deze kolom.'];
     }
 
-    $foto = $isImage ? 1 : 0;
+    $foto = $wantsImage ? 1 : 0;
     $textAlign = sanitizeAlign($data['text_align'] ?? 'left', ['left', 'center', 'right'], 'left');
     $verticalAlign = sanitizeAlign($data['vertical_align'] ?? 'top', ['top', 'center', 'bottom'], 'top');
     $widthPct = max(0, min(100, (int) ($data['width_pct'] ?? 0)));
@@ -281,15 +313,21 @@ function saveGridColumnData(mysqli $con, int $infoId, int $pageId, array $data, 
     $colBorderColor = validateHexColor($data['border_color'] ?? '#d1d5db', '#d1d5db');
 
     $stmt = $con->prepare(
-        'UPDATE paginainfo SET informatie = ?, foto = ?, backgroundColor = ?, backgroundKleur = ?,
-         bold = ?, italic = ?, opacity = ?, kleur = ?, text_align = ?, vertical_align = ?,
-         width_pct = ?, padding_px = ?, border_top = ?, border_right = ?, border_bottom = ?,
-         border_left = ?, border_width = ?, border_color = ? WHERE id = ?'
+        'UPDATE paginainfo SET
+            informatie = ?, foto = ?, content_mode = ?, image_position = ?, image_filename = ?,
+            backgroundColor = ?, backgroundKleur = ?, bold = ?, italic = ?, opacity = ?, kleur = ?,
+            text_align = ?, vertical_align = ?, width_pct = ?, padding_px = ?,
+            border_top = ?, border_right = ?, border_bottom = ?, border_left = ?,
+            border_width = ?, border_color = ?
+         WHERE id = ?'
     );
     $stmt->bind_param(
-        'siisiisssiiiiiiiisi',
+        'siissisiiisssiiiiiiisi',
         $informatie,
         $foto,
+        $contentMode,
+        $imagePosition,
+        $imageFilename,
         $backgroundColor,
         $backgroundKleur,
         $bold,
@@ -311,7 +349,13 @@ function saveGridColumnData(mysqli $con, int $infoId, int $pageId, array $data, 
     $stmt->execute();
     $stmt->close();
 
-    return ['success' => true, 'message' => 'Kolom opgeslagen.', 'informatie' => $informatie, 'foto' => $foto];
+    return [
+        'success' => true,
+        'message' => 'Kolom opgeslagen.',
+        'informatie' => $informatie,
+        'image_filename' => $imageFilename,
+        'content_mode' => $contentMode,
+    ];
 }
 
 function saveGridRowSettings(mysqli $con, int $rowId, int $pageId, array $data): bool
@@ -380,7 +424,8 @@ function saveEntirePageLayout(mysqli $con, int $pageId, array $payload, array $f
         $file = isset($files[$fileKey]) ? $files[$fileKey] : null;
 
         $data = [
-            'foto' => (int) ($columnPayload['foto'] ?? 0),
+            'content_mode' => (int) ($columnPayload['content_mode'] ?? 0),
+            'image_position' => $columnPayload['image_position'] ?? 'top',
             'informatie' => $columnPayload['informatie'] ?? '',
             'kleur' => $columnPayload['kleur'] ?? '#111827',
             'backgroundKleur' => $columnPayload['backgroundKleur'] ?? '#f9fafb',
@@ -417,8 +462,8 @@ function saveEntirePageLayout(mysqli $con, int $pageId, array $payload, array $f
             return $result;
         }
 
-        if ((int) ($result['foto'] ?? 0) === 1 && !empty($result['informatie'])) {
-            $updatedImages[$infoId] = $result['informatie'];
+        if (!empty($result['image_filename'])) {
+            $updatedImages[$infoId] = $result['image_filename'];
         }
     }
 

@@ -24,6 +24,10 @@
         Object.assign(row, GS.normalizeRow(row));
         Object.keys(row.columns || {}).forEach(function (key) {
             Object.assign(row.columns[key], GS.normalizeColumn(row.columns[key]));
+            if (row.columns[key].content_mode === undefined || row.columns[key].content_mode === null) {
+                row.columns[key].content_mode = row.columns[key].foto ? 1 : 0;
+            }
+            row.columns[key].image_position = row.columns[key].image_position || 'top';
         });
     });
 
@@ -129,9 +133,10 @@
     }
 
     function buildColumnLayoutHtml(row, colNum, col) {
+        var textOnlyHidden = parseInt(col.content_mode, 10) === 1 ? ' hidden' : '';
         return (
             '<div class="layout-section">' +
-                '<h5>Layout & randen</h5>' +
+                '<h5>Layout &amp; randen</h5>' +
                 '<div class="color-grid">' +
                     '<div class="inputField"><label>Kolombreedte</label><select data-scope="column" data-field="width_pct" data-row-id="' + row.id + '" data-col="' + colNum + '">' +
                         [{ v: 0, l: 'Automatisch (gelijk)' }, { v: 25, l: '25%' }, { v: 33, l: '33%' }, { v: 50, l: '50%' }, { v: 66, l: '66%' }, { v: 75, l: '75%' }, { v: 100, l: '100%' }]
@@ -144,12 +149,12 @@
                             return '<option value="' + v + '"' + (col.text_align === v ? ' selected' : '') + '>' + v + '</option>';
                         }).join('') +
                     '</select></div>' +
-                    '<div class="inputField content-text-only"><label>Verticale uitlijning</label><select data-scope="column" data-field="vertical_align" data-row-id="' + row.id + '" data-col="' + colNum + '">' +
+                    '<div class="inputField content-text-only"' + textOnlyHidden + '><label>Verticale uitlijning</label><select data-scope="column" data-field="vertical_align" data-row-id="' + row.id + '" data-col="' + colNum + '">' +
                         ['top', 'center', 'bottom'].map(function (v) {
                             return '<option value="' + v + '"' + (col.vertical_align === v ? ' selected' : '') + '>' + v + '</option>';
                         }).join('') +
                     '</select></div>' +
-                    '<div class="inputField content-text-only"><label>Padding (px)</label><input type="number" min="0" max="64" data-scope="column" data-field="padding_px" data-row-id="' + row.id + '" data-col="' + colNum + '" value="' + (col.padding_px ?? 16) + '"></div>' +
+                    '<div class="inputField content-text-only"' + textOnlyHidden + '><label>Padding (px)</label><input type="number" min="0" max="64" data-scope="column" data-field="padding_px" data-row-id="' + row.id + '" data-col="' + colNum + '" value="' + (col.padding_px ?? 16) + '"></div>' +
                 '</div>' +
                 buildBorderFields('column', row.id, colNum, col) +
             '</div>'
@@ -160,32 +165,53 @@
         var col = getColumn(row, colNum);
         if (!col) return '';
 
-        var isImage = parseInt(col.foto, 10) === 1;
+        var mode = parseInt(col.content_mode, 10) || 0;
         var infoId = col.info_id;
-        var imageUrl = col.previewUrl || (col.informatie ? config.assetBase + 'img/fotos/' + encodeURIComponent(col.informatie) : '');
+        var imageUrl = col.previewUrl || (col.image_filename ? config.assetBase + 'img/fotos/' + encodeURIComponent(col.image_filename) : '');
+        var hideText = mode === 1 ? ' hidden' : '';
+        var hideImage = mode === 0 ? ' hidden' : '';
+        var hideImagePosition = mode !== 2 ? ' hidden' : '';
+
+        var positionLabels = { top: 'Boven', left: 'Links', right: 'Rechts', bottom: 'Onder' };
+        var positionOptions = Object.keys(positionLabels).map(function (v) {
+            return '<option value="' + v + '"' + (col.image_position === v ? ' selected' : '') + '>' + positionLabels[v] + '</option>';
+        }).join('');
 
         return (
             '<div class="admin-form builder-column" data-col="' + colNum + '">' +
                 '<h4>Kolom ' + colNum + '</h4>' +
                 '<div class="inputField"><label>Type inhoud</label>' +
-                    '<select data-scope="column" data-field="foto" data-row-id="' + row.id + '" data-col="' + colNum + '">' +
-                        '<option value="0"' + (!isImage ? ' selected' : '') + '>Tekst</option>' +
-                        '<option value="1"' + (isImage ? ' selected' : '') + '>Afbeelding</option>' +
+                    '<select data-scope="column" data-field="content_mode" data-row-id="' + row.id + '" data-col="' + colNum + '">' +
+                        '<option value="0"' + (mode === 0 ? ' selected' : '') + '>Tekst</option>' +
+                        '<option value="1"' + (mode === 1 ? ' selected' : '') + '>Afbeelding</option>' +
+                        '<option value="2"' + (mode === 2 ? ' selected' : '') + '>Afbeelding + tekst</option>' +
                     '</select></div>' +
-                '<div class="inputField content-text"' + (isImage ? ' hidden' : '') + '><label>Tekst</label>' +
-                    '<textarea data-scope="column" data-field="informatie" data-row-id="' + row.id + '" data-col="' + colNum + '" rows="4">' + escapeHtml(col.informatie || '') + '</textarea></div>' +
-                '<div class="inputField content-image"' + (!isImage ? ' hidden' : '') + '>' +
+                '<div class="inputField content-text rich-text-field"' + hideText + '>' +
+                    '<label>Tekst</label>' +
+                    '<p class="admin-meta">Selecteer een stukje tekst en klik op <strong>Titel</strong> of <strong>Vet</strong>.</p>' +
+                    '<div class="rich-toolbar">' +
+                        '<button type="button" class="rt-btn" data-rt-cmd="bold" title="Vet">Vet</button>' +
+                        '<button type="button" class="rt-btn rt-btn--title" data-rt-cmd="title" title="Maak selectie een titel">Titel</button>' +
+                        '<button type="button" class="rt-btn" data-rt-cmd="clear" title="Opmaak wissen">Wis opmaak</button>' +
+                    '</div>' +
+                    '<div class="rich-text-editor" contenteditable="true" data-scope="column" data-field="informatie" data-row-id="' + row.id + '" data-col="' + colNum + '">' + (col.informatie || '') + '</div>' +
+                '</div>' +
+                '<div class="inputField content-image"' + hideImage + '>' +
                     (imageUrl ? '<img class="builder-thumb" src="' + imageUrl + '" alt="Preview">' : '') +
                     '<label>Upload afbeelding</label>' +
                     '<input type="file" accept="image/jpeg,image/png,image/gif,image/webp" data-info-id="' + infoId + '" data-row-id="' + row.id + '" data-col="' + colNum + '">' +
                 '</div>' +
+                '<div class="inputField content-image-position"' + hideImagePosition + '>' +
+                    '<label>Positie afbeelding t.o.v. tekst</label>' +
+                    '<select data-scope="column" data-field="image_position" data-row-id="' + row.id + '" data-col="' + colNum + '">' + positionOptions + '</select>' +
+                '</div>' +
                 '<div class="color-grid">' +
                     '<div class="inputField"><label>Tekstkleur</label><input type="color" data-scope="column" data-field="kleur" data-row-id="' + row.id + '" data-col="' + colNum + '" value="' + escapeHtml(col.kleur || '#111827') + '"></div>' +
-                    '<div class="inputField content-text-only"' + (isImage ? ' hidden' : '') + '><label>Achtergrondkleur</label><input type="color" data-scope="column" data-field="backgroundKleur" data-row-id="' + row.id + '" data-col="' + colNum + '" value="' + escapeHtml(col.backgroundKleur || '#f9fafb') + '"></div>' +
+                    '<div class="inputField content-text-only"' + hideText + '><label>Achtergrondkleur</label><input type="color" data-scope="column" data-field="backgroundKleur" data-row-id="' + row.id + '" data-col="' + colNum + '" value="' + escapeHtml(col.backgroundKleur || '#f9fafb') + '"></div>' +
                 '</div>' +
-                '<div class="inputField content-text-only"' + (isImage ? ' hidden' : '') + '><label>Opacity (0–10)</label><input type="range" min="0" max="10" data-scope="column" data-field="opacity" data-row-id="' + row.id + '" data-col="' + colNum + '" value="' + (col.opacity || 10) + '"></div>' +
-                '<div class="inputField inputField--checkbox content-text-only"' + (isImage ? ' hidden' : '') + '>' +
-                    '<label><input type="checkbox" data-scope="column" data-field="bold" data-row-id="' + row.id + '" data-col="' + colNum + '" value="1"' + (parseInt(col.bold, 10) === 1 ? ' checked' : '') + '> Vet</label>' +
+                '<div class="inputField content-text-only"' + hideText + '><label>Opacity (0–10)</label><input type="range" min="0" max="10" data-scope="column" data-field="opacity" data-row-id="' + row.id + '" data-col="' + colNum + '" value="' + (col.opacity || 10) + '"></div>' +
+                '<div class="inputField inputField--checkbox content-text-only"' + hideText + '>' +
+                    '<label><input type="checkbox" data-scope="column" data-field="bold" data-row-id="' + row.id + '" data-col="' + colNum + '" value="1"' + (parseInt(col.bold, 10) === 1 ? ' checked' : '') + '> Vet (hele blok)</label>' +
                     '<label><input type="checkbox" data-scope="column" data-field="italic" data-row-id="' + row.id + '" data-col="' + colNum + '" value="1"' + (parseInt(col.italic, 10) === 1 ? ' checked' : '') + '> Cursief</label>' +
                 '</div>' +
                 buildColumnLayoutHtml(row, colNum, col) +
@@ -240,9 +266,9 @@
         if (!row || !col) return;
         if (input.type === 'checkbox') col[field] = input.checked ? 1 : 0;
         else if (input.type === 'range' || input.type === 'number') col[field] = parseInt(input.value, 10);
+        else if (field === 'content_mode') col[field] = parseInt(input.value, 10);
         else col[field] = input.value;
 
-        if (field === 'foto') col.foto = parseInt(input.value, 10);
         markDirty();
         renderPreview();
     }
@@ -257,7 +283,7 @@
             input.addEventListener('input', function () { updateFromInput(input); });
             input.addEventListener('change', function () {
                 updateFromInput(input);
-                if (input.dataset.field === 'foto') toggleColumnFields(input.closest('.builder-column'));
+                if (input.dataset.field === 'content_mode') toggleColumnFields(input.closest('.builder-column'));
             });
         });
 
@@ -272,7 +298,12 @@
                     var col = getColumn(row, parseInt(input.dataset.col, 10));
                     if (!col) return;
                     col.previewUrl = e.target.result;
-                    col.foto = 1;
+                    var currentMode = parseInt(col.content_mode, 10) || 0;
+                    if (currentMode === 0) {
+                        col.content_mode = 2; // had text -> keep it, add the image alongside
+                    } else if (currentMode !== 2) {
+                        col.content_mode = 1;
+                    }
                     markDirty();
                     renderPreview();
                     renderRows();
@@ -280,17 +311,91 @@
                 reader.readAsDataURL(input.files[0]);
             });
         });
+
+        bindRichTextToolbars(root);
+    }
+
+    function syncRichEditor(editor) {
+        var rowId = parseInt(editor.dataset.rowId, 10);
+        var colNum = parseInt(editor.dataset.col, 10);
+        var row = getRowById(rowId);
+        var col = getColumn(row, colNum);
+        if (!col) return;
+        col.informatie = editor.innerHTML;
+        markDirty();
+        renderPreview();
+    }
+
+    function wrapSelectionWithTitle(editor) {
+        var sel = window.getSelection();
+        if (!sel.rangeCount || sel.isCollapsed) {
+            alert('Selecteer eerst een stukje tekst om er een titel van te maken.');
+            return;
+        }
+        var range = sel.getRangeAt(0);
+        if (!editor.contains(range.commonAncestorContainer)) return;
+        var span = document.createElement('span');
+        span.className = 'grid-title';
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        sel.removeAllRanges();
+    }
+
+    function clearFormatting(editor) {
+        var sel = window.getSelection();
+        if (!sel.rangeCount || sel.isCollapsed) return;
+        var range = sel.getRangeAt(0);
+        document.execCommand('removeFormat');
+        editor.querySelectorAll('span.grid-title').forEach(function (span) {
+            if (!range.intersectsNode || range.intersectsNode(span)) {
+                while (span.firstChild) span.parentNode.insertBefore(span.firstChild, span);
+                span.parentNode.removeChild(span);
+            }
+        });
+    }
+
+    function bindRichTextToolbars(root) {
+        root.querySelectorAll('.rich-text-field').forEach(function (field) {
+            var editor = field.querySelector('.rich-text-editor');
+            if (!editor || editor.dataset.rtBound === '1') return;
+            editor.dataset.rtBound = '1';
+
+            field.querySelectorAll('.rt-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    editor.focus();
+                    var cmd = btn.dataset.rtCmd;
+                    if (cmd === 'bold') {
+                        document.execCommand('bold');
+                    } else if (cmd === 'title') {
+                        wrapSelectionWithTitle(editor);
+                    } else if (cmd === 'clear') {
+                        clearFormatting(editor);
+                    }
+                    syncRichEditor(editor);
+                });
+            });
+
+            editor.addEventListener('input', function () { syncRichEditor(editor); });
+            editor.addEventListener('paste', function (e) {
+                e.preventDefault();
+                var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+                document.execCommand('insertText', false, text);
+            });
+        });
     }
 
     function toggleColumnFields(columnEl) {
         if (!columnEl) return;
-        var select = columnEl.querySelector('[data-field="foto"]');
-        var isImage = select && select.value === '1';
+        var select = columnEl.querySelector('[data-field="content_mode"]');
+        var mode = select ? parseInt(select.value, 10) : 0;
         columnEl.querySelectorAll('.content-text, .content-text-only').forEach(function (el) {
-            el.hidden = isImage;
+            el.hidden = mode === 1;
         });
         columnEl.querySelectorAll('.content-image').forEach(function (el) {
-            el.hidden = !isImage;
+            el.hidden = mode === 0;
+        });
+        columnEl.querySelectorAll('.content-image-position').forEach(function (el) {
+            el.hidden = mode !== 2;
         });
     }
 
@@ -328,22 +433,37 @@
             for (var i = 1; i <= cols; i++) {
                 var col = getColumn(row, i);
                 if (!col) continue;
+                var mode = parseInt(col.content_mode, 10) || 0;
                 var opacity = Math.max(0, Math.min(1, (parseInt(col.opacity, 10) || 10) / 10));
-                var isImage = parseInt(col.foto, 10) === 1;
-                var cellStyle = GS.columnStyle(col, isImage, flush);
-                if (isImage) {
-                    var src = col.previewUrl || (col.informatie ? config.assetBase + 'img/fotos/' + encodeURIComponent(col.informatie) : '');
-                    inner += '<div class="preview-cell" style="' + cellStyle + '">' +
-                        (src ? '<div class="preview-image' + (flush ? ' preview-image--flush' : '') + '"><img src="' + src + '" style="opacity:' + opacity + '" alt=""></div>' : '<div class="preview-empty">Afbeelding ontbreekt</div>') +
-                        '</div>';
+                var isImageOnly = mode === 1;
+                var cellStyle = GS.columnStyle(col, isImageOnly, flush);
+
+                var imgSrc = col.previewUrl || (col.image_filename ? config.assetBase + 'img/fotos/' + encodeURIComponent(col.image_filename) : '');
+                var imageHtml = imgSrc
+                    ? '<div class="preview-image' + (flush && isImageOnly ? ' preview-image--flush' : '') + '"><img src="' + imgSrc + '" style="opacity:' + opacity + '" alt=""></div>'
+                    : '<div class="preview-empty">Afbeelding ontbreekt</div>';
+
+                var textClasses = 'preview-text';
+                if (parseInt(col.bold, 10) === 1) textClasses += ' bold';
+                if (parseInt(col.italic, 10) === 1) textClasses += ' italic';
+                var textHtml = '<div class="preview-block" style="background:' + (col.backgroundKleur || '#f9fafb') + ';width:100%">' +
+                    '<div class="' + textClasses + '" style="opacity:' + opacity + ';color:' + (col.kleur || '#111827') + '">' +
+                    (col.informatie || '') + '</div></div>';
+
+                var cellContent;
+                if (mode === 0) {
+                    cellContent = textHtml;
+                } else if (mode === 1) {
+                    cellContent = imageHtml;
                 } else {
-                    var classes = 'preview-text';
-                    if (parseInt(col.bold, 10) === 1) classes += ' bold';
-                    if (parseInt(col.italic, 10) === 1) classes += ' italic';
-                    inner += '<div class="preview-cell" style="' + cellStyle + '"><div class="preview-block" style="background:' + (col.backgroundKleur || '#f9fafb') + ';width:100%">' +
-                        '<p class="' + classes + '" style="opacity:' + opacity + ';color:' + (col.kleur || '#111827') + '">' +
-                        escapeHtml(col.informatie || '').replace(/\n/g, '<br>') + '</p></div></div>';
+                    var position = col.image_position || 'top';
+                    cellContent = '<div class="preview-both preview-both--' + position + '">' +
+                        '<div class="preview-both__image">' + imageHtml + '</div>' +
+                        '<div class="preview-both__text">' + textHtml + '</div>' +
+                        '</div>';
                 }
+
+                inner += '<div class="preview-cell" style="' + cellStyle + '">' + cellContent + '</div>';
             }
             return '<div class="preview-row-wrap" style="' + GS.rowWrapperStyle(row) + '">' +
                 '<div class="' + GS.rowGridClass(row.columnType, row) + '" style="' + GS.rowGridStyle(row, row.columns, cols) + '">' + inner + '</div></div>';
@@ -402,7 +522,13 @@
             state.rows = data.rows;
             state.rows.forEach(function (row) {
                 Object.assign(row, GS.normalizeRow(row));
-                Object.keys(row.columns || {}).forEach(function (k) { Object.assign(row.columns[k], GS.normalizeColumn(row.columns[k])); });
+                Object.keys(row.columns || {}).forEach(function (k) {
+                    Object.assign(row.columns[k], GS.normalizeColumn(row.columns[k]));
+                    if (row.columns[k].content_mode === undefined || row.columns[k].content_mode === null) {
+                        row.columns[k].content_mode = row.columns[k].foto ? 1 : 0;
+                    }
+                    row.columns[k].image_position = row.columns[k].image_position || 'top';
+                });
             });
             markDirty();
             renderRows();
@@ -448,7 +574,8 @@
                 var col = row.columns[colKey];
                 columns.push({
                     info_id: col.info_id,
-                    foto: parseInt(col.foto, 10) || 0,
+                    content_mode: parseInt(col.content_mode, 10) || 0,
+                    image_position: col.image_position || 'top',
                     informatie: col.informatie || '',
                     kleur: col.kleur || '#111827',
                     backgroundKleur: col.backgroundKleur || '#f9fafb',
@@ -491,7 +618,7 @@
                     state.rows.forEach(function (row) {
                         Object.keys(row.columns).forEach(function (key) {
                             if (String(row.columns[key].info_id) === String(infoId)) {
-                                row.columns[key].informatie = data.images[infoId];
+                                row.columns[key].image_filename = data.images[infoId];
                                 delete row.columns[key].previewUrl;
                             }
                         });
