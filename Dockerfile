@@ -1,21 +1,8 @@
-FROM php:8.4-fpm
+FROM php:8.2-apache
 
-# System dependencies
-RUN apt-get update && apt-get install -y \
-    git curl zip unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
-    && docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath gd
+RUN docker-php-ext-install mysqli \
+    && a2enmod rewrite
 
-# Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY docker/apache-vhost.conf /etc/apache2/sites-available/000-default.conf
 
-WORKDIR /var/www
-
-COPY . .
-
-RUN composer install --no-interaction --optimize-autoloader --no-dev || true
-
-RUN chown -R www-data:www-data /var/www \
-    && chmod -R 775 storage bootstrap/cache
-
-EXPOSE 9000
-CMD ["php-fpm"]
+WORKDIR /var/www/html
