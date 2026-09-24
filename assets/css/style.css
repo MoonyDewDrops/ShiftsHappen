@@ -59,7 +59,7 @@ body {
 
 .inputField input[type="submit"],
 button {
-    background: #2563eb;
+    background: #4CAF76;
     color: #ffffff;
     border: none;
     border-radius: 8px;
@@ -71,7 +71,7 @@ button {
 
 .inputField input[type="submit"]:hover,
 button:hover {
-    background: #1d4ed8;
+    background: #3b885b;
 }
 
 .link {

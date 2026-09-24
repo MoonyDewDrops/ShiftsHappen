@@ -32,7 +32,7 @@ function renderContactForm(array $feedback = []): void
     $isError = $feedback['error'] ?? false;
     ?>
     <section class="contact-section">
-        <h2>Contact</h2>
+        <h2>Contact formulier</h2>
 
         <?php if ($message !== ''): ?>
             <div class="pop-up <?= $isError ? 'pop-up--error' : 'pop-up--success' ?>">
@@ -41,26 +41,43 @@ function renderContactForm(array $feedback = []): void
         <?php endif; ?>
 
         <form method="post" class="contact-form">
-            <input type="hidden" name="contact_submit" value="1">
+            <div class="contact-row">
+                <div class="inputField">
+                    <input type="text" name="naam" id="contact-naam" required placeholder="Naam (verplicht)"
+                        value="<?= testInput($_POST['naam'] ?? '') ?>">
+                </div>
 
-            <div class="inputField">
-                <label for="contact-naam">Naam</label>
-                <input type="text" name="naam" id="contact-naam" required
-                    value="<?= testInput($_POST['naam'] ?? '') ?>">
+                <div class="inputField">
+                    <input type="text" name="organisatie" id="contact-organisatie" placeholder="Organisatie"
+                        value="<?= testInput($_POST['organisatie'] ?? '') ?>">
+                </div>
+
+                <div class="inputField">
+                    <input type="email" name="email" id="contact-email" required placeholder="E-mailadres (verplicht)"
+                        value="<?= testInput($_POST['email'] ?? '') ?>">
+                </div>
+
+                <div class="inputField">
+                    <input type="tel" name="telefoonnummer" id="contact-telefoonnummer" placeholder="Telefoonnummer"
+                        value="<?= testInput($_POST['telefoonnummer'] ?? '') ?>">
+                </div>
+            </div>
+            
+            <div class="contact-column">
+                <div class="inputField">
+                    <textarea name="bericht" id="contact-bericht" rows="5" placeholder="Bericht/vraag (verplicht)" required><?= testInput($_POST['bericht'] ?? '') ?></textarea>
+                </div>
             </div>
 
-            <div class="inputField">
-                <label for="contact-email">E-mail</label>
-                <input type="email" name="email" id="contact-email" required
-                    value="<?= testInput($_POST['email'] ?? '') ?>">
+            <div class="checkbox-column">
+                <input type="checkbox" id="checkbox-email" name="checkbox" value="checkbox-email">
+                <label for="checkbox">Ik ontvang graag updates of inspiratie via e-mail</label><br>
             </div>
-
-            <div class="inputField">
-                <label for="contact-bericht">Bericht</label>
-                <textarea name="bericht" id="contact-bericht" rows="5" required><?= testInput($_POST['bericht'] ?? '') ?></textarea>
+            
+            <div class="verstuur-row">
+                <input type="hidden" name="contact_submit" value="1">
+                <button id="verstuur-button" type="submit">Verstuur bericht</button>
             </div>
-
-            <button type="submit">Verstuur bericht</button>
         </form>
     </section>
     <?php
