@@ -96,6 +96,12 @@ function builderColumnLayoutHtml(array $row, int $colNum, array $col, bool $isIm
         $verticalAlignOptions .= '<option value="' . $value . '"' . $selected . '>' . $value . '</option>';
     }
 
+    $imageAlignOptions = '';
+    foreach (['top' => 'Boven', 'left' => 'Links', 'right' => 'Rechts', 'bottom' => 'Onder'] as $value => $label) {
+        $selected = $layout['image_align'] === $value ? ' selected' : '';
+        $imageAlignOptions .= '<option value="' . $value . '"' . $selected . '>' . $label . '</option>';
+    }
+
     return '
         <div class="layout-section">
             <h5>Layout &amp; randen</h5>
@@ -107,6 +113,10 @@ function builderColumnLayoutHtml(array $row, int $colNum, array $col, bool $isIm
                 <div class="inputField">
                     <label>Tekstuitlijning</label>
                     <select data-scope="column" data-field="text_align" data-row-id="' . $rowId . '" data-col="' . $colNum . '">' . $textAlignOptions . '</select>
+                </div>
+                <div class="inputField">
+                    <label>Afbeelding uitlijning</label>
+                    <select data-scope="column" data-field="image_align" data-row-id="' . $rowId . '" data-col="' . $colNum . '">' . $imageAlignOptions . '</select>
                 </div>
                 <div class="inputField content-text-only"' . $textOnlyHidden . '>
                     <label>Verticale uitlijning</label>

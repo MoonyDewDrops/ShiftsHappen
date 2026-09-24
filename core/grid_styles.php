@@ -20,6 +20,7 @@ function defaultColumnLayout(): array
 {
     return [
         'text_align' => 'left',
+        'image_align' => 'top',
         'vertical_align' => 'top',
         'width_pct' => 0,
         'padding_px' => 16,
@@ -57,6 +58,7 @@ function normalizeColumnLayout(array $column): array
 {
     return array_merge(defaultColumnLayout(), [
         'text_align' => sanitizeAlign($column['text_align'] ?? 'left', ['left', 'center', 'right'], 'left'),
+        'image_align' => sanitizeAlign($column['image_align'] ?? 'top', ['top', 'right', 'bottom', 'left'], 'top'),
         'vertical_align' => sanitizeAlign($column['vertical_align'] ?? 'top', ['top', 'center', 'bottom'], 'top'),
         'width_pct' => max(0, min(100, (int) ($column['width_pct'] ?? 0))),
         'padding_px' => max(0, min(64, (int) ($column['padding_px'] ?? 16))),
@@ -181,6 +183,7 @@ function buildColumnStyle(array $column, bool $isImage, bool $flushRow): string
     $layout = normalizeColumnLayout($column);
     $styles = [
         'text-align:' . $layout['text_align'],
+        'align-items:' . ($layout['image_align'] === 'top' ? 'flex-start' : ($layout['image_align'] === 'bottom' ? 'flex-end' : ($layout['image_align'] === 'left' ? 'flex-start' : 'flex-end'))),
         'display:flex',
         'flex-direction:column',
         'justify-content:' . ($layout['vertical_align'] === 'center' ? 'center' : ($layout['vertical_align'] === 'bottom' ? 'flex-end' : 'flex-start')),

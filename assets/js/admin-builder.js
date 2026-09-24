@@ -149,6 +149,11 @@
                             return '<option value="' + v + '"' + (col.text_align === v ? ' selected' : '') + '>' + v + '</option>';
                         }).join('') +
                     '</select></div>' +
+                    '<div class="inputField"><label>Afbeelding uitlijning</label><select data-scope="column" data-field="image_align" data-row-id="' + row.id + '" data-col="' + colNum + '">' +
+                        ['top', 'right', 'bottom', 'left'].map(function (v) {
+                            return '<option value="' + v + '"' + (col.image_align === v ? ' selected' : '') + '>' + v + '</option>';
+                        }).join('') +
+                    '</select></div>' +
                     '<div class="inputField content-text-only"' + textOnlyHidden + '><label>Verticale uitlijning</label><select data-scope="column" data-field="vertical_align" data-row-id="' + row.id + '" data-col="' + colNum + '">' +
                         ['top', 'center', 'bottom'].map(function (v) {
                             return '<option value="' + v + '"' + (col.vertical_align === v ? ' selected' : '') + '>' + v + '</option>';
@@ -583,6 +588,7 @@
                     bold: parseInt(col.bold, 10) === 1,
                     italic: parseInt(col.italic, 10) === 1,
                     text_align: col.text_align || 'left',
+                    image_align: col.image_align || 'center',
                     vertical_align: col.vertical_align || 'top',
                     width_pct: parseInt(col.width_pct, 10) || 0,
                     padding_px: parseInt(col.padding_px, 10) || 16,
@@ -650,6 +656,13 @@
     window.addEventListener('beforeunload', function (e) {
         if (state.dirty) { e.preventDefault(); e.returnValue = ''; }
     });
+
+
+    setInterval(function () {
+        if (state.dirty) {
+            savePage();
+        }
+    }, 30000);
 
     initBuilder();
 })();

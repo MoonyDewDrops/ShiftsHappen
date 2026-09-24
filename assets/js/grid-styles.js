@@ -17,6 +17,7 @@ window.GridStyles = (function () {
     function normalizeColumn(col) {
         return {
             text_align: ['left', 'center', 'right'].indexOf(col.text_align) >= 0 ? col.text_align : 'left',
+            image_align: ['top', 'right', 'bottom', 'left'].indexOf(col.image_align) >= 0 ? col.image_align : 'top',
             vertical_align: ['top', 'center', 'bottom'].indexOf(col.vertical_align) >= 0 ? col.vertical_align : 'top',
             width_pct: Math.max(0, Math.min(100, parseInt(col.width_pct, 10) || 0)),
             padding_px: Math.max(0, Math.min(64, parseInt(col.padding_px, 10) || 16)),
@@ -77,6 +78,7 @@ window.GridStyles = (function () {
         var layout = normalizeColumn(column);
         var styles = [
             'text-align:' + layout.text_align,
+            'align-items:' + (layout.image_align === 'top' ? 'flex-start' : (layout.image_align === 'bottom' ? 'flex-end' : (layout.image_align === 'left' ? 'flex-start' : 'flex-end'))),
             'display:flex',
             'flex-direction:column',
             'justify-content:' + (layout.vertical_align === 'center' ? 'center' : (layout.vertical_align === 'bottom' ? 'flex-end' : 'flex-start')),

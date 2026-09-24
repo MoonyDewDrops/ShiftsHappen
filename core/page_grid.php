@@ -45,7 +45,7 @@ function gridLayoutLabel(int $columnType): string
                     i.id AS info_id, i.colum, i.informatie, i.foto,
                     i.content_mode, i.image_position, i.image_filename,
                     i.backgroundColor, i.backgroundKleur, i.bold, i.italic, i.opacity, i.kleur,
-                    i.text_align, i.vertical_align, i.width_pct, i.padding_px,
+                    i.text_align, i.image_align, i.vertical_align, i.width_pct, i.padding_px,
                     i.border_top, i.border_right, i.border_bottom, i.border_left,
                     i.border_width, i.border_color
              FROM paginagrid g
@@ -142,8 +142,8 @@ function createEmptyColumnInfo(mysqli $con, int $rowId, int $columnNumber): void
     $stmt = $con->prepare(
         'INSERT INTO paginainfo (
             whichRow, colum, informatie, foto, content_mode, image_position, image_filename,
-            backgroundColor, backgroundKleur, bold, italic, opacity, kleur, text_align, vertical_align, width_pct, padding_px
-        ) VALUES (?, ?, ?, 0, 0, ?, ?, 0, ?, 0, 0, 10, ?, ?, ?, 0, 16)'
+            backgroundColor, backgroundKleur, bold, italic, opacity, kleur, text_align, image_align, vertical_align, width_pct, padding_px
+        ) VALUES (?, ?, ?, 0, 0, ?, ?, 0, ?, 0, 0, 10, ?, ?, ?, ?, 0, 16)'
     );
     $empty = '';
     $position = 'top';
@@ -151,6 +151,7 @@ function createEmptyColumnInfo(mysqli $con, int $rowId, int $columnNumber): void
     $bg = '#f9fafb';
     $text = '#111827';
     $textAlign = 'left';
+    $imageAlign = 'top';
     $verticalAlign = 'top';
     $stmt->bind_param(
         'iisssssss',
@@ -162,6 +163,7 @@ function createEmptyColumnInfo(mysqli $con, int $rowId, int $columnNumber): void
         $bg,
         $text,
         $textAlign,
+        $imageAlign,
         $verticalAlign
     );
     $stmt->execute();
@@ -302,6 +304,7 @@ function saveGridColumnData(mysqli $con, int $infoId, int $pageId, array $data, 
 
     $foto = $wantsImage ? 1 : 0;
     $textAlign = sanitizeAlign($data['text_align'] ?? 'left', ['left', 'center', 'right'], 'left');
+    $imageAlign = sanitizeAlign($data['image_align'] ?? 'top', ['top', 'right', 'bottom', 'left'], 'top');
     $verticalAlign = sanitizeAlign($data['vertical_align'] ?? 'top', ['top', 'center', 'bottom'], 'top');
     $widthPct = max(0, min(100, (int) ($data['width_pct'] ?? 0)));
     $paddingPx = max(0, min(64, (int) ($data['padding_px'] ?? 16)));
@@ -316,13 +319,13 @@ function saveGridColumnData(mysqli $con, int $infoId, int $pageId, array $data, 
         'UPDATE paginainfo SET
             informatie = ?, foto = ?, content_mode = ?, image_position = ?, image_filename = ?,
             backgroundColor = ?, backgroundKleur = ?, bold = ?, italic = ?, opacity = ?, kleur = ?,
-            text_align = ?, vertical_align = ?, width_pct = ?, padding_px = ?,
+            text_align = ?, image_align = ?, vertical_align = ?, width_pct = ?, padding_px = ?,
             border_top = ?, border_right = ?, border_bottom = ?, border_left = ?,
             border_width = ?, border_color = ?
          WHERE id = ?'
     );
     $stmt->bind_param(
-        'siissisiiisssiiiiiiisi',
+        'siissisiiissssiiiiiiisi',
         $informatie,
         $foto,
         $contentMode,
@@ -335,6 +338,7 @@ function saveGridColumnData(mysqli $con, int $infoId, int $pageId, array $data, 
         $opacity,
         $kleur,
         $textAlign,
+        $imageAlign,
         $verticalAlign,
         $widthPct,
         $paddingPx,
@@ -431,6 +435,7 @@ function saveEntirePageLayout(mysqli $con, int $pageId, array $payload, array $f
             'backgroundKleur' => $columnPayload['backgroundKleur'] ?? '#f9fafb',
             'opacity' => (int) ($columnPayload['opacity'] ?? 10),
             'text_align' => $columnPayload['text_align'] ?? 'left',
+            'image_align' => $columnPayload['image_align'] ?? 'top',
             'vertical_align' => $columnPayload['vertical_align'] ?? 'top',
             'width_pct' => (int) ($columnPayload['width_pct'] ?? 0),
             'padding_px' => (int) ($columnPayload['padding_px'] ?? 16),
