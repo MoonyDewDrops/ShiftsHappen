@@ -91,11 +91,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $notice = 'Bericht verwijderd.';
         $stmt->close();
     }
+
+    if ($action === 'create_footer') {
+        $footerPage = $con->query("SELECT id FROM paginas WHERE slug = 'footer' LIMIT 1")->fetch_assoc();
+
+        if ($footerPage) {
+            $notice = 'Footer bestaat al.';
+        } else {
+            $siteSettings = getSiteSettings($con);
+            $footerTitle = 'Footer';
+            $footerSlug = 'footer';
+            $footerContent = $siteSettings['footer_content'];
+            $stmt = $con->prepare('INSERT INTO paginas (titel, slug, inhoud, heeft_contactformulier) VALUES (?, ?, ?, 0)');
+            $stmt->bind_param('sss', $footerTitle, $footerSlug, $footerContent);
+            $stmt->execute();
+            $notice = 'Footer aangemaakt. Je kunt nu kolommen en afbeeldingen toevoegen.';
+            $stmt->close();
+        }
+    }
 }
 
 $paginas = $con->query('SELECT * FROM paginas ORDER BY titel ASC');
 $socials = $con->query('SELECT * FROM socials ORDER BY volgorde ASC, platform ASC');
 $berichten = $con->query('SELECT * FROM contactberichten ORDER BY created_at DESC');
+$footerPage = $con->query("SELECT id FROM paginas WHERE slug = 'footer' LIMIT 1")->fetch_assoc();
+$footerPageId = (int) ($footerPage['id'] ?? 0);
 ?>
 
 <div class="admin-panel">
@@ -175,6 +195,7 @@ $berichten = $con->query('SELECT * FROM contactberichten ORDER BY created_at DES
                     </article>
                 <?php endwhile; ?>
             </div>
+
         <?php else: ?>
             <p class="admin-empty">Nog geen pagina's.</p>
         <?php endif; ?>
@@ -232,6 +253,20 @@ $berichten = $con->query('SELECT * FROM contactberichten ORDER BY created_at DES
             </div>
         <?php else: ?>
             <p class="admin-empty">Nog geen social links.</p>
+        <?php endif; ?>
+    </section>
+
+    <section id="footer" class="admin-section">
+        <h2>Footer</h2>
+        <?php if ($footerPageId > 0): ?>
+            <p>Beheer de footer als pagina met tekstkolommen en afbeeldingen.</p>
+            <a class="admin-view-link" href="<?= view('page_builder.php') ?>?page_id=<?= $footerPageId ?>">Footer bewerken</a>
+        <?php else: ?>
+            <p>Maak eerst een footerpagina aan om kolommen en afbeeldingen toe te voegen.</p>
+            <form method="post">
+                <input type="hidden" name="action" value="create_footer">
+                <button type="submit">Footer aanmaken</button>
+            </form>
         <?php endif; ?>
     </section>
 

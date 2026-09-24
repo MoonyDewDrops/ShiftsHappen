@@ -167,12 +167,20 @@ textarea {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
-    align-items: start;
+    align-items: stretch;
+}
+
+.builder-editor,
+.builder-preview-panel {
+    min-height: 0;
+    max-height: calc(100vh - 190px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
 }
 
 .builder-preview-panel {
-    position: sticky;
-    top: 1rem;
+    position: static;
 }
 
 .builder-preview-panel h2,
@@ -554,8 +562,10 @@ textarea {
         grid-template-columns: 1fr;
     }
 
+    .builder-editor,
     .builder-preview-panel {
-        position: static;
+        max-height: none;
+        overflow: visible;
     }
 }
 

@@ -14,8 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'body_bg' => $settings['body_bg'],
         'page_bg' => $settings['page_bg'],
         'accent_color' => validateHexColor($_POST['accent_color'] ?? '#2563eb'),
-        'footer_bg' => $settings['footer_bg'],
-        'footer_text' => $settings['footer_text'],
+        'footer_bg' => validateHexColor($_POST['footer_bg'] ?? $settings['footer_bg']),
+        'footer_text' => validateHexColor($_POST['footer_text'] ?? $settings['footer_text']),
+        'footer_title' => trim($_POST['footer_title'] ?? $settings['footer_title']),
+        'footer_content' => trim($_POST['footer_content'] ?? $settings['footer_content']),
         'cookie_enabled' => isset($_POST['cookie_enabled']) ? 1 : 0,
         'cookie_tekst' => trim($_POST['cookie_tekst'] ?? ''),
         'cookie_button_text' => trim($_POST['cookie_button_text'] ?? 'Accepteren'),
@@ -105,8 +107,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="color" name="cookie_button_text_color" value="<?= testInput($settings['cookie_button_text_color']) ?>">
                 </div>
             </div>
-        </section>
 
+
+        <div class="inputField">
+            <label for="footer_title">Footer  title</label>
+            <input type="text" name="footer_title" id="footer_title" value="<?= testInput($settings['footer_title']) ?>">
+        </div>
+        
+        <!-- <div class="inputField">
+        <label for="footer_content">Footer</label>
+        <textarea name="footer_content" id="footer_content" rows="3"><?= testInput($settings['footer_content']) ?></textarea>
+        </div> -->
+    </div>
+</section>
         <button type="submit">Instellingen opslaan</button>
     </form>
 </div>

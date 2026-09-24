@@ -35,7 +35,7 @@ $builderConfig = [
 <div class="admin-panel admin-panel--wide builder-app">
     <div class="builder-header">
         <div>
-            <h1>Layout bewerken: <?= testInput($page['titel']) ?></h1>
+            
             <p class="admin-meta">Sleep kolomsecties om te ordenen. Wijzigingen worden live getoond. Sla alles in één keer op.</p>
         </div>
         <div class="builder-header__actions">

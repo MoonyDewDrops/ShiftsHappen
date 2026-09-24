@@ -4,14 +4,16 @@ function defaultSiteSettings(): array
 {
     return [
         'id' => 1,
-        'header_bg' => '#111827',
+        'header_bg' => '#fafafa',
         'header_text' => '#f9fafb',
         'header_link' => '#dbeafe',
         'body_bg' => '#f3f4f6',
         'page_bg' => '#ffffff',
         'accent_color' => '#2563eb',
-        'footer_bg' => '#111827',
+        'footer_bg' => '#f1f3f7',
         'footer_text' => '#9ca3af',
+        'footer_title' => 'ShiftsHappen',
+        'footer_content' => '© ' . date('Y') . ' ShiftsHappen',
         'cookie_enabled' => 1,
         'cookie_tekst' => 'We gebruiken cookies om je ervaring op onze website te verbeteren. Door op Accepteren te klikken ga je akkoord met ons cookiebeleid.',
         'cookie_button_text' => 'Accepteren',
@@ -40,10 +42,10 @@ function saveSiteSettings(mysqli $con, array $data): bool
 
     $stmt = $con->prepare(
         'INSERT INTO site_settings (
-            id, header_bg, header_text, header_link, body_bg, page_bg, accent_color,
+            id, header_bg, header_text, header_link, footer_title, footer_content, body_bg, page_bg, accent_color,
             footer_bg, footer_text, cookie_enabled, cookie_tekst, cookie_button_text,
             cookie_bg, cookie_text_color, cookie_button_bg, cookie_button_text_color
-        ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
             header_bg = VALUES(header_bg),
             header_text = VALUES(header_text),
@@ -53,6 +55,8 @@ function saveSiteSettings(mysqli $con, array $data): bool
             accent_color = VALUES(accent_color),
             footer_bg = VALUES(footer_bg),
             footer_text = VALUES(footer_text),
+            footer_title = VALUES(footer_title),
+            footer_content = VALUES(footer_content),
             cookie_enabled = VALUES(cookie_enabled),
             cookie_tekst = VALUES(cookie_tekst),
             cookie_button_text = VALUES(cookie_button_text),
@@ -65,7 +69,7 @@ function saveSiteSettings(mysqli $con, array $data): bool
     $cookieEnabled = !empty($settings['cookie_enabled']) ? 1 : 0;
 
     $stmt->bind_param(
-        'ssssssssissssss',
+        'ssssssssssissssss',
         $settings['header_bg'],
         $settings['header_text'],
         $settings['header_link'],
@@ -74,6 +78,8 @@ function saveSiteSettings(mysqli $con, array $data): bool
         $settings['accent_color'],
         $settings['footer_bg'],
         $settings['footer_text'],
+        $settings['footer_title'],
+        $settings['footer_content'],
         $cookieEnabled,
         $settings['cookie_tekst'],
         $settings['cookie_button_text'],

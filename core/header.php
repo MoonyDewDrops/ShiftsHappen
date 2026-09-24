@@ -4,7 +4,7 @@ require_once __DIR__ . '/site_settings.php';
 
 $siteSettings = getSiteSettings($con);
 $pageTheme = $pageTheme ?? null;
-$navPages = $con->query('SELECT id, titel, slug FROM paginas ORDER BY titel ASC');
+$navPages = $con->query("SELECT id, titel, slug FROM paginas WHERE slug <> 'footer' ORDER BY titel ASC");
 $socialLinks = $con->query('SELECT platform, url FROM socials ORDER BY volgorde ASC, platform ASC');
 ?>
 <!DOCTYPE html>
