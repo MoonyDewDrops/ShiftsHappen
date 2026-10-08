@@ -83,34 +83,54 @@ include __DIR__ . '/../core/header.php';
                                 }
 
                                 $newOpacity = max(0, min(1, ((int) ($column['opacity'] ?? 10)) / 10));
-                                $isImage = (int) ($column['foto'] ?? 0) === 1;
+                                $contentMode = (int) ($column['content_mode'] ?? (((int) ($column['foto'] ?? 0) === 1) ? 1 : 0));
                                 $textClasses = 'home-text';
                                 if ((int) ($column['italic'] ?? 0) === 1) {
-                                    $textClasses .= ' italic';
+                                $textClasses .= ' italic';
                                 }
                                 if ((int) ($column['bold'] ?? 0) === 1) {
                                     $textClasses .= ' bold';
                                 }
                                 $bgColor = validateHexColor($column['backgroundKleur'] ?? '#f9fafb', '#f9fafb');
-                                $columnStyle = buildColumnStyle($column, $isImage, $flushRow);
+                                $isImageOnly = $contentMode === 1;
+                                $columnStyle = buildColumnStyle($column, $isImageOnly, $flushRow);
                                 $imageClass = $flushRow ? 'grid-image grid-image--flush' : 'grid-image';
+                                $imagePosition = sanitizeAlign($column['image_position'] ?? 'top', ['top', 'right', 'bottom', 'left'], 'top');
+                                $imageFile = $column['image_filename'] ?? '';
                                 ?>
 
                                 <div class="grid-cell" style="<?= $columnStyle ?>">
-                                    <?php if ($isImage): ?>
-                                        <?php if (!empty($column['informatie'])): ?>
+                                    <?php if ($contentMode === 1): ?>
+                                        <?php if (!empty($imageFile)): ?>
                                             <div class="<?= $imageClass ?>">
                                                 <img class="team-image"
-                                                    src="<?= asset('img/fotos/' . rawurlencode($column['informatie'])) ?>"
+                                                    src="<?= asset('img/fotos/' . rawurlencode($imageFile)) ?>"
                                                     style="opacity: <?= $newOpacity ?>;"
                                                     alt="Afbeelding">
                                             </div>
                                         <?php endif; ?>
+                                    <?php elseif ($contentMode === 2): ?>
+                                        <div class="content-both content-both--<?= testInput($imagePosition) ?>" style="width: 100%;">
+                                            <?php if (!empty($imageFile)): ?>
+                                                <div class="content-both__image <?= $imageClass ?>">
+                                                <img class="team-image"
+                                                src="<?= asset('img/fotos/' . rawurlencode($imageFile)) ?>"
+                                                style="opacity: <?= $newOpacity ?>;"
+                                                alt="Afbeelding">
+                                                </div>
+                                            <?php endif; ?>
+                                        <div class="content-both__text content-column" style="background-color: <?= testInput($bgColor) ?>;">
+                                            <p class="<?= $textClasses ?>"
+                                            style="opacity: <?= $newOpacity ?>; color: <?= testInput($column['kleur'] ?? '#111827') ?>;">
+                                            <?= renderBlockHtml($column['informatie'] ?? '') ?>
+                                            </p>
+                                        </div>
+                                    </div>
                                     <?php else: ?>
                                         <div class="content-column" style="background-color: <?= testInput($bgColor) ?>; width: 100%;">
                                             <p class="<?= $textClasses ?>"
                                                 style="opacity: <?= $newOpacity ?>; color: <?= testInput($column['kleur'] ?? '#111827') ?>;">
-                                                <?= nl2br(testInput($column['informatie'] ?? '')) ?>
+                                                <?= renderBlockHtml($column['informatie'] ?? '') ?>
                                             </p>
                                         </div>
                                     <?php endif; ?>

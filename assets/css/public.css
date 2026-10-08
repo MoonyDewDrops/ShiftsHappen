@@ -289,3 +289,28 @@ html {
         align-items: flex-start;
     }
 }
+
+
+.content-both {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.content-both--top { flex-direction: column; }
+.content-both--bottom { flex-direction: column-reverse; }
+.content-both--left { flex-direction: row; }
+.content-both--right { flex-direction: row-reverse; }
+
+.content-both__image,
+.content-both__text {
+    flex: 1;
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
+    .content-both--left,
+    .content-both--right {
+        flex-direction: column;
+    }
+}

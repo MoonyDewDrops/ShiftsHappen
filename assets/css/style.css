@@ -106,3 +106,10 @@ button:hover {
     color: #166534;
     border: 1px solid #bbf7d0;
 }
+
+.grid-title {
+    display: inline-block;
+    font-size: 1.35em;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}

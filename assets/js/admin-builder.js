@@ -210,6 +210,12 @@
                     '<label>Positie afbeelding t.o.v. tekst</label>' +
                     '<select data-scope="column" data-field="image_position" data-row-id="' + row.id + '" data-col="' + colNum + '">' + positionOptions + '</select>' +
                 '</div>' +
+                '<div class="rich-toolbar">' +
+                    '<button type="button" class="rt-btn" data-rt-cmd="bold" title="Vet">Vet</button>' +
+                    '<button type="button" class="rt-btn" data-rt-cmd="italic" title="Cursief">Cursief</button>' +
+                    '<button type="button" class="rt-btn rt-btn--title" data-rt-cmd="title" title="Maak selectie een titel">Titel</button>' +
+                    '<button type="button" class="rt-btn" data-rt-cmd="clear" title="Opmaak wissen">Wis opmaak</button>' +
+                '</div>' +
                 '<div class="color-grid">' +
                     '<div class="inputField"><label>Tekstkleur</label><input type="color" data-scope="column" data-field="kleur" data-row-id="' + row.id + '" data-col="' + colNum + '" value="' + escapeHtml(col.kleur || '#111827') + '"></div>' +
                     '<div class="inputField content-text-only"' + hideText + '><label>Achtergrondkleur</label><input type="color" data-scope="column" data-field="backgroundKleur" data-row-id="' + row.id + '" data-col="' + colNum + '" value="' + escapeHtml(col.backgroundKleur || '#f9fafb') + '"></div>' +
@@ -371,7 +377,10 @@
                     var cmd = btn.dataset.rtCmd;
                     if (cmd === 'bold') {
                         document.execCommand('bold');
-                    } else if (cmd === 'title') {
+                    } else if (cmd === 'italic') {
+                        document.execCommand('italic');
+                    }
+                    else if (cmd === 'title') {
                         wrapSelectionWithTitle(editor);
                     } else if (cmd === 'clear') {
                         clearFormatting(editor);

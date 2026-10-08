@@ -191,6 +191,13 @@ function builderColumnHtml(array $row, int $colNum, array $col, string $assetBas
             <select data-scope="column" data-field="image_position" data-row-id="<?= $rowId ?>" data-col="<?= $colNum ?>"><?= $positionOptions ?></select>
         </div>
 
+        <div class="rich-toolbar">
+            <button type="button" class="rt-btn" data-rt-cmd="bold" title="Vet">Vet</button>
+            <button type="button" class="rt-btn" data-rt-cmd="italic" title="Cursief">Cursief</button>
+            <button type="button" class="rt-btn rt-btn--title" data-rt-cmd="title" title="Maak van de selectie een titel">Titel</button>
+            <button type="button" class="rt-btn" data-rt-cmd="clear" title="Opmaak wissen">Wis opmaak</button>
+        </div>
+
         <div class="color-grid">
             <div class="inputField">
                 <label>Tekstkleur</label>
