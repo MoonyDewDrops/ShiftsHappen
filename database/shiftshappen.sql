@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS `paginainfo` (
   `colum` TINYINT NOT NULL,
   `informatie` TEXT NOT NULL,
   `foto` TINYINT(1) NOT NULL DEFAULT 0,
+  `button_url` VARCHAR(2048) NOT NULL DEFAULT '',
   `backgroundColor` TINYINT(1) NOT NULL DEFAULT 0,
   `bold` TINYINT(1) NOT NULL DEFAULT 0,
   `italic` TINYINT(1) NOT NULL DEFAULT 0,

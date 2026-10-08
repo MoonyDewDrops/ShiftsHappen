@@ -83,7 +83,9 @@ include __DIR__ . '/../core/header.php';
                                 }
 
                                 $newOpacity = max(0, min(1, ((int) ($column['opacity'] ?? 10)) / 10));
-                                $isImage = (int) ($column['foto'] ?? 0) === 1;
+                                $contentType = (int) ($column['foto'] ?? 0);
+                                $isImage = $contentType === 1;
+                                $isButton = $contentType === 2;
                                 $textClasses = 'home-text';
                                 if ((int) ($column['italic'] ?? 0) === 1) {
                                     $textClasses .= ' italic';
@@ -106,6 +108,11 @@ include __DIR__ . '/../core/header.php';
                                                     alt="Afbeelding">
                                             </div>
                                         <?php endif; ?>
+                                    <?php elseif ($isButton): ?>
+                                        <a class="grid-button" href="<?= testInput($column['button_url'] ?? '') ?>"
+                                            style="opacity: <?= $newOpacity ?>; color: <?= testInput($column['kleur'] ?? '#111827') ?>; background-color: <?= testInput($bgColor) ?>;">
+                                            <?= testInput($column['informatie'] ?? '') ?>
+                                        </a>
                                     <?php else: ?>
                                         <div class="content-column" style="background-color: <?= testInput($bgColor) ?>; width: 100%;">
                                             <p class="<?= $textClasses ?>"

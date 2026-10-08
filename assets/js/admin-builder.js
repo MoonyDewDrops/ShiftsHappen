@@ -160,7 +160,9 @@
         var col = getColumn(row, colNum);
         if (!col) return '';
 
-        var isImage = parseInt(col.foto, 10) === 1;
+        var contentType = parseInt(col.foto, 10) || 0;
+        var isImage = contentType === 1;
+        var isButton = contentType === 2;
         var infoId = col.info_id;
         var imageUrl = col.previewUrl || (col.informatie ? config.assetBase + 'img/fotos/' + encodeURIComponent(col.informatie) : '');
 
@@ -169,11 +171,14 @@
                 '<h4>Kolom ' + colNum + '</h4>' +
                 '<div class="inputField"><label>Type inhoud</label>' +
                     '<select data-scope="column" data-field="foto" data-row-id="' + row.id + '" data-col="' + colNum + '">' +
-                        '<option value="0"' + (!isImage ? ' selected' : '') + '>Tekst</option>' +
+                        '<option value="0"' + (contentType === 0 ? ' selected' : '') + '>Tekst</option>' +
                         '<option value="1"' + (isImage ? ' selected' : '') + '>Afbeelding</option>' +
+                        '<option value="2"' + (isButton ? ' selected' : '') + '>Knop</option>' +
                     '</select></div>' +
                 '<div class="inputField content-text"' + (isImage ? ' hidden' : '') + '><label>Tekst</label>' +
                     '<textarea data-scope="column" data-field="informatie" data-row-id="' + row.id + '" data-col="' + colNum + '" rows="4">' + escapeHtml(col.informatie || '') + '</textarea></div>' +
+                '<div class="inputField content-button-url"' + (!isButton ? ' hidden' : '') + '><label>Knoplink (volledige http(s)-URL)</label>' +
+                    '<input type="url" data-scope="column" data-field="button_url" data-row-id="' + row.id + '" data-col="' + colNum + '" value="' + escapeHtml(col.button_url || '') + '"></div>' +
                 '<div class="inputField content-image"' + (!isImage ? ' hidden' : '') + '>' +
                     (imageUrl ? '<img class="builder-thumb" src="' + imageUrl + '" alt="Preview">' : '') +
                     '<label>Upload afbeelding</label>' +
@@ -286,11 +291,15 @@
         if (!columnEl) return;
         var select = columnEl.querySelector('[data-field="foto"]');
         var isImage = select && select.value === '1';
+        var isButton = select && select.value === '2';
         columnEl.querySelectorAll('.content-text, .content-text-only').forEach(function (el) {
             el.hidden = isImage;
         });
         columnEl.querySelectorAll('.content-image').forEach(function (el) {
             el.hidden = !isImage;
+        });
+        columnEl.querySelectorAll('.content-button-url').forEach(function (el) {
+            el.hidden = !isButton;
         });
     }
 
@@ -329,13 +338,19 @@
                 var col = getColumn(row, i);
                 if (!col) continue;
                 var opacity = Math.max(0, Math.min(1, (parseInt(col.opacity, 10) || 10) / 10));
-                var isImage = parseInt(col.foto, 10) === 1;
+                var contentType = parseInt(col.foto, 10) || 0;
+                var isImage = contentType === 1;
+                var isButton = contentType === 2;
                 var cellStyle = GS.columnStyle(col, isImage, flush);
                 if (isImage) {
                     var src = col.previewUrl || (col.informatie ? config.assetBase + 'img/fotos/' + encodeURIComponent(col.informatie) : '');
                     inner += '<div class="preview-cell" style="' + cellStyle + '">' +
                         (src ? '<div class="preview-image' + (flush ? ' preview-image--flush' : '') + '"><img src="' + src + '" style="opacity:' + opacity + '" alt=""></div>' : '<div class="preview-empty">Afbeelding ontbreekt</div>') +
                         '</div>';
+                } else if (isButton) {
+                    inner += '<div class="preview-cell" style="' + cellStyle + '"><div class="preview-block" style="background:' + (col.backgroundKleur || '#f9fafb') + ';width:100%">' +
+                        '<span class="preview-button" style="opacity:' + opacity + ';color:' + (col.kleur || '#111827') + ';background:' + (col.backgroundKleur || '#f9fafb') + '">' +
+                        escapeHtml(col.informatie || 'Knop') + '</span></div></div>';
                 } else {
                     var classes = 'preview-text';
                     if (parseInt(col.bold, 10) === 1) classes += ' bold';
@@ -465,6 +480,7 @@
                     border_left: parseInt(col.border_left, 10) === 1,
                     border_width: parseInt(col.border_width, 10) || 1,
                     border_color: col.border_color || '#d1d5db',
+                    button_url: col.button_url || '',
                 });
             });
         });

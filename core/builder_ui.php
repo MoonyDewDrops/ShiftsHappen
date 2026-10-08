@@ -124,7 +124,9 @@ function builderColumnLayoutHtml(array $row, int $colNum, array $col, bool $isIm
 function builderColumnHtml(array $row, int $colNum, array $col, string $assetBase): string
 {
     $rowId = (int) $row['id'];
-    $isImage = (int) ($col['foto'] ?? 0) === 1;
+    $contentType = (int) ($col['foto'] ?? 0);
+    $isImage = $contentType === 1;
+    $isButton = $contentType === 2;
     $infoId = (int) ($col['info_id'] ?? 0);
     $imageUrl = $isImage && !empty($col['informatie'])
         ? $assetBase . 'img/fotos/' . rawurlencode($col['informatie'])
@@ -137,8 +139,9 @@ function builderColumnHtml(array $row, int $colNum, array $col, string $assetBas
         <div class="inputField">
             <label>Type inhoud</label>
             <select data-scope="column" data-field="foto" data-row-id="<?= $rowId ?>" data-col="<?= $colNum ?>">
-                <option value="0" <?= !$isImage ? 'selected' : '' ?>>Tekst</option>
+                <option value="0" <?= $contentType === 0 ? 'selected' : '' ?>>Tekst</option>
                 <option value="1" <?= $isImage ? 'selected' : '' ?>>Afbeelding</option>
+                <option value="2" <?= $isButton ? 'selected' : '' ?>>Knop</option>
             </select>
         </div>
         <div class="inputField content-text" <?= $isImage ? 'hidden' : '' ?>>
@@ -151,6 +154,10 @@ function builderColumnHtml(array $row, int $colNum, array $col, string $assetBas
             <?php endif; ?>
             <label>Upload afbeelding</label>
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" data-info-id="<?= $infoId ?>" data-row-id="<?= $rowId ?>" data-col="<?= $colNum ?>">
+        </div>
+        <div class="inputField content-button-url" <?= !$isButton ? 'hidden' : '' ?>>
+            <label>Button link</label>
+            <input type="url" data-scope="column" data-field="button_url" data-row-id="<?= $rowId ?>" data-col="<?= $colNum ?>" value="<?= testInput($col['button_url'] ?? '') ?>">
         </div>
         <div class="color-grid">
             <div class="inputField">

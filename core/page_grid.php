@@ -41,7 +41,7 @@ function gridLayoutLabel(int $columnType): string
                     g.border_top AS row_border_top, g.border_right AS row_border_right,
                     g.border_bottom AS row_border_bottom, g.border_left AS row_border_left,
                     g.border_width AS row_border_width, g.border_color AS row_border_color,
-                    i.id AS info_id, i.colum, i.informatie, i.foto, i.backgroundColor,
+                    i.id AS info_id, i.colum, i.informatie, i.foto, i.button_url, i.backgroundColor,
                     i.backgroundKleur, i.bold, i.italic, i.opacity, i.kleur,
                     i.text_align, i.vertical_align, i.width_pct, i.padding_px,
                     i.border_top, i.border_right, i.border_bottom, i.border_left,
@@ -100,7 +100,7 @@ function getPageGridRowsLegacy(mysqli $con, int $pageId): array
 {
     $stmt = $con->prepare(
         'SELECT g.id AS row_id, g.rowPosition, g.columnType,
-                i.id AS info_id, i.colum, i.informatie, i.foto, i.backgroundColor,
+                i.id AS info_id, i.colum, i.informatie, i.foto, i.button_url, i.backgroundColor,
                 i.backgroundKleur, i.bold, i.italic, i.opacity, i.kleur
          FROM paginagrid g
          LEFT JOIN paginainfo i ON i.whichRow = g.id
@@ -243,8 +243,11 @@ function saveGridColumnData(mysqli $con, int $infoId, int $pageId, array $data, 
         return ['success' => false, 'message' => 'Kolom niet gevonden.'];
     }
 
-    $isImage = isset($data['foto']) && (int) $data['foto'] === 1;
+    $contentType = max(0, min(2, (int) ($data['foto'] ?? 0)));
+    $isImage = $contentType === 1;
+    $isButton = $contentType === 2;
     $informatie = trim($data['informatie'] ?? '');
+    $buttonUrl = trim($data['button_url'] ?? '');
     $kleur = validateHexColor($data['kleur'] ?? '#111827', '#111827');
     $backgroundKleur = validateHexColor($data['backgroundKleur'] ?? '#f9fafb', '#f9fafb');
     $bold = !empty($data['bold']) ? 1 : 0;
@@ -264,11 +267,20 @@ function saveGridColumnData(mysqli $con, int $infoId, int $pageId, array $data, 
         return ['success' => false, 'message' => 'Upload een afbeelding of schakel terug naar tekst.'];
     }
 
+    $buttonScheme = strtolower((string) parse_url($buttonUrl, PHP_URL_SCHEME));
+    if ($isButton && (
+        $informatie === '' ||
+        filter_var($buttonUrl, FILTER_VALIDATE_URL) === false ||
+        !in_array($buttonScheme, ['http', 'https'], true)
+    )) {
+        return ['success' => false, 'message' => 'Vul knoptekst en een geldige http- of https-link in.'];
+    }
+
     if (!$isImage && $informatie === '' && !$allowEmpty) {
         return ['success' => false, 'message' => 'Vul tekst in voor deze kolom.'];
     }
 
-    $foto = $isImage ? 1 : 0;
+    $foto = $contentType;
     $textAlign = sanitizeAlign($data['text_align'] ?? 'left', ['left', 'center', 'right'], 'left');
     $verticalAlign = sanitizeAlign($data['vertical_align'] ?? 'top', ['top', 'center', 'bottom'], 'top');
     $widthPct = max(0, min(100, (int) ($data['width_pct'] ?? 0)));
@@ -279,15 +291,14 @@ function saveGridColumnData(mysqli $con, int $infoId, int $pageId, array $data, 
     $colBorderLeft = !empty($data['border_left']) ? 1 : 0;
     $colBorderWidth = max(1, min(8, (int) ($data['border_width'] ?? 1)));
     $colBorderColor = validateHexColor($data['border_color'] ?? '#d1d5db', '#d1d5db');
-
     $stmt = $con->prepare(
         'UPDATE paginainfo SET informatie = ?, foto = ?, backgroundColor = ?, backgroundKleur = ?,
          bold = ?, italic = ?, opacity = ?, kleur = ?, text_align = ?, vertical_align = ?,
          width_pct = ?, padding_px = ?, border_top = ?, border_right = ?, border_bottom = ?,
-         border_left = ?, border_width = ?, border_color = ? WHERE id = ?'
+         border_left = ?, border_width = ?, border_color = ?, button_url = ? WHERE id = ?'
     );
     $stmt->bind_param(
-        'siisiisssiiiiiiiisi',
+        'siisiiisssiiiiiiissi',
         $informatie,
         $foto,
         $backgroundColor,
@@ -306,6 +317,7 @@ function saveGridColumnData(mysqli $con, int $infoId, int $pageId, array $data, 
         $colBorderLeft,
         $colBorderWidth,
         $colBorderColor,
+        $buttonUrl,
         $infoId
     );
     $stmt->execute();
@@ -382,6 +394,7 @@ function saveEntirePageLayout(mysqli $con, int $pageId, array $payload, array $f
         $data = [
             'foto' => (int) ($columnPayload['foto'] ?? 0),
             'informatie' => $columnPayload['informatie'] ?? '',
+            'button_url' => $columnPayload['button_url'] ?? '',
             'kleur' => $columnPayload['kleur'] ?? '#111827',
             'backgroundKleur' => $columnPayload['backgroundKleur'] ?? '#f9fafb',
             'opacity' => (int) ($columnPayload['opacity'] ?? 10),
