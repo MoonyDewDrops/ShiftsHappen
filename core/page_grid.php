@@ -33,10 +33,10 @@ function gridLayoutLabel(int $columnType): string
     }
 }
 
-    function getPageGridRows(mysqli $con, int $pageId): array
-    {
-        $stmt = $con->prepare(
-            'SELECT g.id AS row_id, g.rowPosition, g.columnType,
+function getPageGridRows(mysqli $con, int $pageId): array
+{
+    $stmt = $con->prepare(
+        'SELECT g.id AS row_id, g.rowPosition, g.columnType,
                     g.row_width_pct, g.row_align, g.column_gap, g.flush_columns,
                     g.border_top AS row_border_top, g.border_right AS row_border_right,
                     g.border_bottom AS row_border_bottom, g.border_left AS row_border_left,
@@ -50,17 +50,17 @@ function gridLayoutLabel(int $columnType): string
              LEFT JOIN paginainfo i ON i.whichRow = g.id
              WHERE g.pageValue = ?
              ORDER BY g.rowPosition ASC, i.colum ASC'
-        );
+    );
 
-        if ($stmt === false) {
-            return getPageGridRowsLegacy($con, $pageId);
-        }
+    if ($stmt === false) {
+        return getPageGridRowsLegacy($con, $pageId);
+    }
 
-        $stmt->bind_param('i', $pageId);
-        if (!$stmt->execute()) {
-            $stmt->close();
-            return getPageGridRowsLegacy($con, $pageId);
-        }
+    $stmt->bind_param('i', $pageId);
+    if (!$stmt->execute()) {
+        $stmt->close();
+        return getPageGridRowsLegacy($con, $pageId);
+    }
     $result = $stmt->get_result();
 
     $rows = [];
@@ -137,9 +137,9 @@ function createEmptyColumnInfo(mysqli $con, int $rowId, int $columnNumber): void
 {
     $stmt = $con->prepare(
         'INSERT INTO paginainfo (
-            whichRow, colum, informatie, foto, backgroundColor, backgroundKleur,
+            whichRow, colum, informatie, caption_text, foto, backgroundColor, backgroundKleur,
             bold, italic, opacity, kleur, text_align, vertical_align, width_pct, padding_px
-        ) VALUES (?, ?, ?, 0, 0, ?, 0, 0, 10, ?, ?, ?, 0, 16)'
+        ) VALUES (?, ?, ?, \'\', 0, 0, ?, 0, 0, 10, ?, ?, ?, 0, 16)'
     );
     $empty = '';
     $bg = '#f9fafb';
