@@ -1,6 +1,6 @@
 <?php
 // Copy this file to db_credentials.php and adjust for your XAMPP setup.
 $dbhost = 'localhost';
-$dbusername = 'u240660_shiftshappen';
-$dbpassword = 'vJLbZXV8Zf4effxZz3dF';
-$dbname = 'u240660_shiftshappen';
+$dbusername = 'u230062_shiftshappen';
+$dbpassword = 'L2E9TJ9HUdedt4bxJsuc';
+$dbname = 'u230062_shiftshappen';
