@@ -6,6 +6,12 @@ requireLogin();
 
 header('Content-Type: application/json; charset=utf-8');
 
+set_exception_handler(function ($e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Serverfout: ' . $e->getMessage()]);
+    exit();
+});
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Method not allowed']);
