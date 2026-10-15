@@ -55,7 +55,7 @@ include __DIR__ . '/../core/header.php';
     <div class="page-error">
         <h1>Pagina niet gevonden</h1>
         <p>Deze pagina bestaat niet (meer).</p>
-        <p><a href="<?= view('pages.php') ?>?slug=home">Terug naar home</a></p>
+        <p><a href="../views/pages.php?slug=home">Terug naar home</a></p>
     </div>
 <?php else: ?>
     <div class="page-container">

@@ -48,7 +48,7 @@ if (isset($_POST['submit'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="<?= asset('css/style.css') ?>">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <title>Registratie pagina</title>
 </head>
 
@@ -80,7 +80,7 @@ if (isset($_POST['submit'])) {
                 </div>
 
                 <div class="link">
-                    Heb je al een account? <a href="<?= view('login.php') ?>">Log hier in.</a>
+                    Heb je al een account? <a href="../views/login.php">Log hier in.</a>
                 </div>
             </form>
         </div>

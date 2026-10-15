@@ -49,7 +49,7 @@
             <h2><?= testInput($siteSettings['footer_title']) ?></h2>
             <p><?= nl2br(testInput($footerPage['inhoud'] ?? $siteSettings['footer_content'])) ?></p>
         <?php endif; ?>
-        <p><a href="<?= view('login.php') ?>">Admin login</a></p>
+        <p><a href="../views/login.php">Admin login</a></p>
     </footer>
 
     <?php if (!empty($siteSettings['cookie_enabled'])): ?>

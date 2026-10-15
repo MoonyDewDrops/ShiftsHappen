@@ -69,7 +69,7 @@ if (isset($_POST['submit'])) {
                 </div>
 
                 <div class="link">
-                    Heb je nog geen account? <a href="<?= view('registreren.php') ?>">Registreer jezelf hier!</a>
+                    Heb je nog geen account? <a href="../views/registreren.php">Registreer jezelf hier!</a>
                 </div>
             </form>
         </div>

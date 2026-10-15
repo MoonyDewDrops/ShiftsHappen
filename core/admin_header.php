@@ -20,7 +20,7 @@ requireLogin();
             <p>Welkom, <?= testInput($_SESSION['gebruikersnaam']) ?></p>
         </div>
         <nav class="adminlink">
-            <a href="settings.php">Instellingen</a>
+            <a href="../views/settings.php">Instellingen</a>
             <a href="../views/pages.php?slug=home" target="_blank">Website</a>
             <a href="../views/admin.php#paginas">Pagina's</a>
             <a href="../views/admin.php#socials">Socials</a>

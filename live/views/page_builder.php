@@ -39,8 +39,8 @@ $builderConfig = [
             <p class="admin-meta">Sleep kolomsecties om te ordenen. Wijzigingen worden live getoond. Sla alles in één keer op.</p>
         </div>
         <div class="builder-header__actions">
-            <a class="admin-view-link" href="<?= view('pages.php') ?>?slug=<?= urlencode($page['slug']) ?>" target="_blank">Bekijk pagina</a>
-            <a class="admin-view-link" href="<?= view('admin.php') ?>#paginas">Terug</a>
+            <a class="admin-view-link" href="../views/pages.php?slug=<?= urlencode($page['slug']) ?>" target="_blank">Bekijk pagina</a>
+            <a class="admin-view-link" href="../views/admin.php#paginas">Terug</a>
         </div>
     </div>
 

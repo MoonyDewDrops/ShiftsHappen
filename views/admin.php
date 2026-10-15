@@ -183,8 +183,8 @@ $footerPageId = (int) ($footerPage['id'] ?? 0);
                             </div>
                             <div class="admin-card__actions">
                                 <button type="submit">Opslaan</button>
-                                <a class="admin-view-link" href="<?= view('page_builder.php') ?>?page_id=<?= (int) $pagina['id'] ?>">Layout bewerken</a>
-                                <a class="admin-view-link" href="<?= view('pages.php') ?>?slug=<?= urlencode($pagina['slug']) ?>" target="_blank">Bekijk pagina</a>
+                                <a class="admin-view-link" href="../views/page_builder.php?page_id=<?= (int) $pagina['id'] ?>">Layout bewerken</a>
+                                <a class="admin-view-link" href="../views/pages.php?slug=<?= urlencode($pagina['slug']) ?>" target="_blank">Bekijk pagina</a>
                             </div>
                         </form>
                         <form method="post" onsubmit="return confirm('Deze pagina verwijderen?');">
@@ -260,7 +260,7 @@ $footerPageId = (int) ($footerPage['id'] ?? 0);
         <h2>Footer</h2>
         <?php if ($footerPageId > 0): ?>
             <p>Beheer de footer als pagina met tekstkolommen en afbeeldingen.</p>
-            <a class="admin-view-link" href="<?= view('page_builder.php') ?>?page_id=<?= $footerPageId ?>">Footer bewerken</a>
+            <a class="admin-view-link" href="../views/page_builder.php?page_id=<?= $footerPageId ?>">Footer bewerken</a>
         <?php else: ?>
             <p>Maak eerst een footerpagina aan om kolommen en afbeeldingen toe te voegen.</p>
             <form method="post">

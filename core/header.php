@@ -34,7 +34,7 @@ $socialLinks = $con->query('SELECT platform, url FROM socials ORDER BY volgorde 
 <body class="public-body">
     <header class="site-header">
         <div class="site-header__inner">
-            <a class="site-logo" href="<?= view('pages.php') ?>?slug=home">
+            <a class="site-logo" href="../views/pages.php?slug=home">
                 <span class="site-logo__mark">SH</span>
                 <span class="site-logo__text">ShiftsHappen</span>
             </a>
@@ -42,7 +42,7 @@ $socialLinks = $con->query('SELECT platform, url FROM socials ORDER BY volgorde 
             <nav class="site-nav">
                 <?php if ($navPages): ?>
                     <?php while ($navPage = $navPages->fetch_assoc()): ?>
-                        <a href="<?= view('pages.php') ?>?slug=<?= urlencode($navPage['slug']) ?>">
+                        <a href="../views/pages.php?slug=<?= urlencode($navPage['slug']) ?>">
                             <?= testInput($navPage['titel']) ?>
                         </a>
                     <?php endwhile; ?>
