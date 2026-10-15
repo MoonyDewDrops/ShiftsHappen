@@ -125,7 +125,7 @@ $builderConfig = [
 <script>
     window.BUILDER_CONFIG = <?= json_encode($builderConfig, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 </script>
-<script src="<?= asset('js/grid-styles.js') ?>?v=3"></script>
-<script src="<?= asset('js/admin-builder.js') ?>?v=3"></script>
+<script src="../assets/js/grid-styles.js') ?>?v=3"></script>
+<script src="../assets/js/admin-builder.js') ?>?v=3"></script>
 
 <?php require_once __DIR__ . '/../core/admin_footer.php'; ?>

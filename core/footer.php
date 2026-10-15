@@ -61,7 +61,7 @@
                 <?= testInput($siteSettings['cookie_button_text']) ?>
             </button>
         </div>
-        <script src="<?= asset('js/cookie.js') ?>"></script>
+        <script src="../assets/js/cookie.js') ?>"></script>
     <?php endif; ?>
 </body>
 </html>
