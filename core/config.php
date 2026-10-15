@@ -1,7 +1,7 @@
 <?php
 
 define('APP_ROOT', dirname(__DIR__));
-define('BASE_PATH', '/ShiftsHappen');
+define('BASE_PATH', '/shiftshappen');
 
 function url(string $path = ''): string
 {
