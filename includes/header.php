@@ -4,11 +4,13 @@
             <img src="images/ShiftHappens-logo.png" id="header-logo">
         </div>
         <div class="header-column">
-            <h2>Home</h2>
-            <h2>Aanbod</h2>
-            <h2>Portfolio</h2>
-            <h2>Contact</h2>
-            <h2>Webshop</h2>
+            <nav class="site-navigation" aria-label="Hoofdnavigatie">
+                <a href="index.php">Home</a>
+                <a href="aanbod.php">Aanbod</a>
+                <a href="portfolio.php">Portfolio</a>
+                <a href="contact.php">Contact</a>
+                <span>Webshop</span>
+            </nav>
         </div>
     </div>
     
