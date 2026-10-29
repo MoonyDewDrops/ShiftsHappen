@@ -1,0 +1,76 @@
+body{
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: #F5F2E8;
+    color: #000000;
+    align-items: center;
+    align-content: center;
+    align-content: center;
+}
+
+p{
+    font-size: 24px;
+}
+
+h1 {
+    font-size: 36px;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+
+.container{
+    align-items: center;
+}
+
+.portfolioTitle{
+    text-align: center;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    align-self: center;
+}
+
+.motivatie{
+    text-align: center;
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;    
+}
+
+.motivatie_column1, .motivatie_column2, .motivatie_column3{
+    width: 50%;
+    padding-right: 20px;
+}
+
+.funfact_yellow{
+    text-align: center;
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    width: 60%;
+    height: auto;
+    border-radius: 3rem;
+    padding: 3rem;
+    background: #FACC15;
+    display: block;
+}
+
+.funfactTitle{
+    text-align: center;
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.wordDescription{
+
+}
+
+#funfactDescription{
+
+}
+
+.image{
+
+}
