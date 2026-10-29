@@ -4,6 +4,10 @@ body{
     font-family: 'Space Grotesk';
 }
 
+@font-face {
+    font-family: "fontOne";
+    src: url();
+}
 
 header{
     width: 100%;
@@ -88,3 +92,13 @@ footer{
     text-align: left;
 }
 /*Einde footer*/
+
+.content-container{
+    background-color: #F5F2E8;
+}
+
+.intro-title{
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
