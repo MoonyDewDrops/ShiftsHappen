@@ -20,6 +20,7 @@
             <div class="motivatie_column1">
                 <p><strong>Van bewustwording naar eigenaarschap</strong></p>
                 <p>Op basis van praktijkonderzoek en kennissessies een interventie ontwikkeld voor leidingevenden bij een grote overheidsorganisatie. Hierbij concreet handelingsperspectief aangedragen voor hun voorbeeldrol, de rol van aanjager van duurzame verandering.</p>
+                <br><br><br>
                 <p><strong>Waardegedreven gesprekken voor energiecoaches</strong></p>
                 <p>Energiecoaches helpen huishoudens hun energieverbruik te verlagen — maar gedragsverandering vraagt meer dan goede tips. Voor deze coaches werd een praktische workshopchtend
                     ontwikkeld met bewezen gedragstechnieken: van motiverende gespreksvoering tot het slim inzetten van culturele en sociale factoren. Zodat elke deur die opengaat ook echt iets in beweging zet.</p>
@@ -30,8 +31,10 @@
             <div class="motivatie_column3">
                 <p><strong>Themaweek</strong></p>
                 <p>Ontwerp en organisatie van een week vol interventies, campagnes en activaties binnen een grote overheidsorganisatie. Niet één boodschap, maar vele instappunten — zodat elke medewerker ergens een raakvlak vond.</p>
+                <br>
                 <p><strong>Pop-up Café</strong></p>
                 <p>Een leegstaand pand omgetoverd tot ontmoetingsplek voor maatschappelijke en duurzame initiatieven. Laagdrempelig, vrolijk en verbindend — waar burger en initiatief elkaar gezellig konden ontmoeten.</p>
+                <br>
                 <p><strong>Leven lang leren</strong></p>
                 <p>Ontwikkeling van leer- en communicatiematerialen voor projecten binnen maatschappelijke organisaties — toegankelijk, activerend en afgestemd op de doelgroep en het gewenste doelgedrag. Voor jong en oud. </p>
             </div>

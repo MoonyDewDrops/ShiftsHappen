@@ -30,6 +30,9 @@ a {
     margin-top: 50px;
     margin-bottom: 50px;
     align-self: center;
+    margin: 0 auto 0.5rem auto;
+    width: 90%;
+    border-bottom: 3px solid #111827;
 }
 
 .motivatie{
@@ -38,23 +41,40 @@ a {
     margin-bottom: 2rem;
     display: flex;
     justify-content: center;    
+    padding: 2rem;  
+    margin: 0 auto 0.5rem auto;
 }
 
-.motivatie_column1, .motivatie_column2, .motivatie_column3{
+.motivatie_column1, .motivatie_column3{
     width: 50%;
-    padding-right: 20px;
+    padding : 2rem;
+}
+
+.motivatie_column2 img{
+    text-align: center;
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;  
+    padding: 2rem;  
+    margin: 0 auto 0.5rem auto;
+    width: 90%;
+    height: auto;
 }
 
 .funfact_yellow{
     text-align: center;
     font-size: 1.2rem;
     margin-bottom: 2rem;
-    width: 60%;
+    width: 75%;
     height: auto;
     border-radius: 3rem;
     padding: 3rem;
-    background: #FACC15;
+    background: #FFDE59;
     display: block;
+    margin: 0 auto 0.5rem auto;
+    border-top: 3px solid #111827;
+    border-bottom: 3px solid #111827;
 }
 
 .funfactTitle{
@@ -63,14 +83,10 @@ a {
     margin-bottom: 2rem;
 }
 
-.wordDescription{
-
-}
-
-#funfactDescription{
-
-}
-
 .image{
-
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: 30px auto 50px;
 }
